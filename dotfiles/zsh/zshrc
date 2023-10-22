@@ -1,0 +1,2 @@
+export DOTS=$HOME/.dotfiles
+source $DOTS/zsh/zshrc.local

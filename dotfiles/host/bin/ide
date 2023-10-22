@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -e
+
+ide () {
+  docker_host="tcp://dockersock:2375"
+  dockersock_network="dockersock"
+  tmux_session_name="$(basename $PWD)"
+  ide_docker_image="${IDE_DOCKER_IMAGE:-jasonben/ide}"
+  container_home="/jasonben/ide"
+  host_hostname=$(cat /etc/hostname)
+
+  docker volume create jasonben_ide_ssh 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_code 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_local 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_config 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_cache 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_tailscale 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_tmuxinator 1>/dev/null 2>/dev/null
+
+  docker run -it --rm \
+    --privileged \
+    --network="$dockersock_network" \
+    -e DOCKER_HOST="$docker_host" \
+    --cap-add=NET_ADMIN \
+    --cap-add=SYS_MODULE \
+    -v "jasonben_ide_ssh:$container_home/.ssh" \
+    -v "jasonben_ide_cache:$container_home/.cache" \
+    -v "jasonben_ide_config:$container_home/.config" \
+    -v "jasonben_ide_local:$container_home/.local" \
+    -v "jasonben_ide_tmuxinator:$container_home/.tmuxinator" \
+    -v "jasonben_ide_code:$container_home/code" \
+    -v "jasonben_ide_tailscale:/var/lib" \
+    -v "/dev/net/tun:/dev/net/tun" \
+    "$ide_docker_image" \
+    tmux new-session -A -s "ide on $host_hostname" "$@"
+}
+
+ide "$@"

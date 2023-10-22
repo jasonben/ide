@@ -1,0 +1,97 @@
+set nocompatible
+
+set shell=/bin/zsh
+let g:python3_host_prog = '/usr/bin/python3'
+let g:polyglot_disabled = ['jsx']
+
+call plug#begin('~/.vim/plugged')
+  Plug 'airblade/vim-gitgutter'
+  Plug 'chriskempson/base16-vim'
+  Plug 'christoomey/vim-tmux-navigator'
+  Plug 'editorconfig/editorconfig-vim'
+  Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+  Plug 'gcmt/taboo.vim'
+  " Plug 'hashivim/vim-terraform'
+  Plug 'haya14busa/incsearch.vim'
+  Plug 'junegunn/fzf'
+  Plug 'junegunn/fzf.vim'
+  Plug 'junegunn/vim-peekaboo'
+  Plug 'majutsushi/tagbar'
+  Plug 'rust-lang/rust.vim'
+  Plug 'ryanoasis/vim-devicons'
+  Plug 'scrooloose/nerdtree'
+  " vim-jsx-pretty before vim-polyglot
+  Plug 'maxmellon/vim-jsx-pretty'
+  Plug 'sheerun/vim-polyglot'
+  Plug 'chrisbra/Colorizer'
+  Plug 'dense-analysis/ale'
+  Plug 'easymotion/vim-easymotion'
+  Plug 'jpalardy/vim-slime'
+  Plug 'jparise/vim-graphql'
+  Plug 'leafgarland/typescript-vim'
+  Plug 'lepture/vim-jinja'
+  Plug 'neoclide/coc.nvim', {'branch': 'release'}
+  Plug 'pangloss/vim-javascript'
+  Plug 'peitalin/vim-jsx-typescript'
+  Plug 'prisma/vim-prisma'
+  Plug 'styled-components/vim-styled-components', { 'branch': 'main'  }
+  Plug 'sukima/vim-javascript-imports'
+  Plug 'terryma/vim-expand-region'
+  Plug 'terryma/vim-multiple-cursors'
+  Plug 'tpope/vim-commentary'
+  Plug 'tpope/vim-endwise'
+  Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-obsession'
+  Plug 'tpope/vim-rails'
+  Plug 'tpope/vim-repeat'
+  Plug 'tpope/vim-surround'
+  Plug 'tpope/vim-unimpaired'
+  " might be causing lag
+  " Plug 'valloric/MatchTagAlways'
+  Plug 'vim-airline/vim-airline'
+  Plug 'vim-airline/vim-airline-themes'
+  Plug 'wesQ3/vim-windowswap'
+  Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
+
+  " Snippets Engine
+  Plug 'Shougo/deoplete.nvim'
+  Plug 'roxma/nvim-yarp'
+  Plug 'roxma/vim-hug-neovim-rpc'
+  "/ Snippets Engine
+
+  " Snippets
+  Plug 'SirVer/ultisnips'
+  Plug 'honza/vim-snippets'
+  Plug 'mlaursen/vim-react-snippets'
+  "/ Snippets
+
+  "sqls.vim
+  Plug 'lighttiger2505/sqls.vim'
+  Plug 'prabirshrestha/vim-lsp'
+  "/ sqls.vim
+  "
+  Plug 'inkarkat/vim-SyntaxRange'
+call plug#end()
+
+set viminfo=%,<800,'100,/10000000,:10000000,h,f0,n~/.config/vim/.viminfo
+"           | |    |   |   |    | |  + viminfo file path
+"           | |    |   |   |    | + file marks 0-9,A-Z 0=NOT stored
+"           | |    |   |   |    + disable 'hlsearch' loading viminfo
+"           | |    |   |   + command-line history saved
+"           | |    |   + search history saved
+"           | |    + files marks saved
+"           | + lines saved each register (old name for <, vi6.2)
+"           + save/restore buffer list
+
+source ~/.dotfiles/vim/vimrc.local
+source ~/.dotfiles/vim/vimrc.coc
+
+" Highlight the active tab.
+hi TabLineFill ctermfg=20 ctermbg=19
+hi TabLine ctermfg=20 ctermbg=19
+hi TabLineSel ctermfg=19 ctermbg=20
+hi Title ctermfg=NONE ctermbg=NONE
+hi Comment cterm=italic
+
+let g:taboo_tab_format = ' %m %r '
+let g:taboo_modified_tab_flag = '🚩'
