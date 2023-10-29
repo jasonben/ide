@@ -194,4 +194,6 @@ set wildignore=log/**,node_modules/**,target/**,tmp/**,*.rbc
 "set wildmode=longest,list,full
 set nospell
 set mouse=a
-
+set foldmethod=indent
+set foldlevel=1
+set foldclose=all
