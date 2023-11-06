@@ -170,6 +170,7 @@ let g:fzf_colors =
   \ 'spinner':    ['fg', 'Label'],
   \ 'header':     ['fg', 'Comment'] }
 
+set title
 set showtabline=2                                            " always show tab bar
 set tags=./.git/ctags
 set number                                                   " show line numbers
