@@ -19,20 +19,21 @@ ide () {
   docker volume create jasonben_ide_tmuxinator 1>/dev/null 2>/dev/null
 
   docker run -it --rm \
+    --log-driver=none \
     --privileged \
     --network="$dockersock_network" \
     -e DOCKER_HOST="$docker_host" \
     --cap-add=NET_ADMIN \
     --cap-add=SYS_MODULE \
-    -v "jasonben_ide_ssh:$container_home/.ssh" \
-    -v "jasonben_ide_cache:$container_home/.cache" \
-    -v "jasonben_ide_config:$container_home/.config" \
-    -v "jasonben_ide_local:$container_home/.local" \
-    -v "jasonben_ide_tmuxinator:$container_home/.tmuxinator" \
-    -v "jasonben_ide_code:$container_home/code" \
-    -v "jasonben_ide_tailscale:/var/lib" \
-    -v "/dev/net/tun:/dev/net/tun" \
-    "$ide_docker_image" \
+    -v jasonben_ide_cache:/jasonben/ide/.cache \
+    -v jasonben_ide_code:/jasonben/ide/code \
+    -v jasonben_ide_config:/jasonben/ide/.config \
+    -v jasonben_ide_local:/jasonben/ide/.local \
+    -v jasonben_ide_ssh:/jasonben/ide/.ssh \
+    -v jasonben_ide_tailscale:/var/lib \
+    -v jasonben_ide_tmuxinator:/jasonben/ide/.tmuxinator \
+    -v /dev/net/tun:/dev/net/tun \
+    $ide_docker_image \
     tmux new-session -A -s "ide on $host_hostname" "$@"
 }
 
