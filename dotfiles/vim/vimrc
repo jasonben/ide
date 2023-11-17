@@ -11,7 +11,6 @@ call plug#begin('~/.vim/plugged')
   Plug 'editorconfig/editorconfig-vim'
   Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
   Plug 'gcmt/taboo.vim'
-  " Plug 'hashivim/vim-terraform'
   Plug 'haya14busa/incsearch.vim'
   Plug 'junegunn/fzf'
   Plug 'junegunn/fzf.vim'
@@ -46,18 +45,10 @@ call plug#begin('~/.vim/plugged')
   Plug 'tpope/vim-repeat'
   Plug 'tpope/vim-surround'
   Plug 'tpope/vim-unimpaired'
-  " might be causing lag
-  " Plug 'valloric/MatchTagAlways'
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
   Plug 'wesQ3/vim-windowswap'
   Plug 'z0mbix/vim-shfmt', { 'for': 'sh' }
-
-  " Snippets Engine
-  Plug 'Shougo/deoplete.nvim'
-  Plug 'roxma/nvim-yarp'
-  Plug 'roxma/vim-hug-neovim-rpc'
-  "/ Snippets Engine
 
   " Snippets
   Plug 'SirVer/ultisnips'
@@ -69,7 +60,7 @@ call plug#begin('~/.vim/plugged')
   Plug 'lighttiger2505/sqls.vim'
   Plug 'prabirshrestha/vim-lsp'
   "/ sqls.vim
-  "
+
   Plug 'inkarkat/vim-SyntaxRange'
   Plug 'gelguy/wilder.nvim'
 call plug#end()
