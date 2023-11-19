@@ -22,8 +22,6 @@ call wilder#set_option('renderer', wilder#popupmenu_renderer(wilder#popupmenu_pa
       \ 'reverse': 0,
       \ })))
 
-highlight Pmenu ctermbg=black guibg=black
-
 " Custom keymaps
 " see also vim.coc
 imap jk <Esc>
@@ -115,7 +113,7 @@ let g:ale_fixers['jsx'] = ['prettier']
 let g:ale_fixers['less'] = ['prettier']
 let g:ale_fixers['markdown'] = ['prettier']
 let g:ale_fixers['python'] = ['black']
-let g:ale_fixers['ruby'] = ['standardrb']
+let g:ale_fixers['ruby'] = ['rubocop']
 let g:ale_fixers['rust'] = ['rustfmt']
 let g:ale_fixers['scss'] = ['prettier']
 let g:ale_fixers['sh'] = ['prettier']

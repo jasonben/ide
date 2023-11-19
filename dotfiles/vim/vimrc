@@ -84,6 +84,7 @@ hi TabLine ctermfg=20 ctermbg=19
 hi TabLineSel ctermfg=19 ctermbg=20
 hi Title ctermfg=NONE ctermbg=NONE
 hi Comment cterm=italic
+hi Pmenu ctermbg=black guibg=black
 
 let g:taboo_tab_format = ' %m %r '
 let g:taboo_modified_tab_flag = '🚩'
