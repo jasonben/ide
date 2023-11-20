@@ -12,6 +12,7 @@ ide () {
 
   docker volume create jasonben_ide_ssh 1>/dev/null 2>/dev/null
   docker volume create jasonben_ide_code 1>/dev/null 2>/dev/null
+  docker volume create jasonben_ide_bundle 1>/dev/null 2>/dev/null
   docker volume create jasonben_ide_local 1>/dev/null 2>/dev/null
   docker volume create jasonben_ide_config 1>/dev/null 2>/dev/null
   docker volume create jasonben_ide_cache 1>/dev/null 2>/dev/null
@@ -25,6 +26,7 @@ ide () {
     -e DOCKER_HOST="$docker_host" \
     --cap-add=NET_ADMIN \
     --cap-add=SYS_MODULE \
+    -v jasonben_ide_bundle:/jasonben/ide/bundle \
     -v jasonben_ide_cache:/jasonben/ide/.cache \
     -v jasonben_ide_code:/jasonben/ide/code \
     -v jasonben_ide_config:/jasonben/ide/.config \
