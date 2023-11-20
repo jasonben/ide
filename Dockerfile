@@ -45,3 +45,4 @@ COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile          $IDE_HOME/.zprofile
 COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc             $IDE_HOME/.zshrc
 COPY --chown=$IDE_USER ./dotfiles/                      $IDE_HOME/.dotfiles
 COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml     $IDE_HOME/.starship.toml
+COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc           $IDE_HOME/.usqlrc
