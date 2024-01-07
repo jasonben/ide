@@ -1,11 +1,6 @@
 ARG IDE_BASE_IMAGE
 FROM ${IDE_BASE_IMAGE}
 
-RUN doas mkdir -p ~/.config/coc ~/.config/ide/context/personal/zsh ~/.config/ide/context/work/zsh ~/.tmuxinator  && \
-    doas chown -R ide:ide ~/.config/coc ~/.config/ide/context/personal/zsh ~/.config/ide/context/personal/zsh ~/.tmuxinator && \
-  doas mkdir -p $IDE_HOME/.cache $IDE_HOME/.ssh && \
-  doas chown -R ide:ide $IDE_HOME/.cache $IDE_HOME/.ssh
-
 COPY --chown=$IDE_USER ./dotfiles/vim/init.vim            /etc/xdg/nvim/sysinit.vim
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc           $IDE_HOME/.dotfiles/vim/vimrc.coc
@@ -27,14 +22,14 @@ RUN \
     && \
   echo "%%%%%%%%%%%%%%===> Vim: Installing helptags" && \
     VIM_HELPTAGS="$(vim -c ':helptags ALL' -c ':q')" && \
-  echo "%%%%%%%%%%%%%%===> Config: Copying dotfiles" && \
+  echo "%%%%%%%%%%%%%%===> Config: Git" && \
     git config --global core.excludesfile "$IDE_HOME/.gitignore" && \
   echo "%%%%%%%%%%%%%%===> Config: Copying dotfiles" && \
     go clean -cache && \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
     doas rm -rf "$IDE_HOME/.cache" && \
-    mkdir -p "$GOPATH/src" "$GOPATH/bin" && chmod -R 1777 "$GOPATH"
+    mkdir -p "$GOPATH/src" "$GOPATH/bin" "$IDE_HOME/.cache" && chmod -R 1777 "$GOPATH"
 
 COPY --chown=$IDE_USER ./code                           $IDE_HOME/code
 COPY --chown=$IDE_USER ./dotfiles/git/gitconfig         $IDE_HOME/.gitconfig
