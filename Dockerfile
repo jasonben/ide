@@ -29,7 +29,9 @@ RUN \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
     doas rm -rf "$IDE_HOME/.cache" && \
-    mkdir -p "$GOPATH/src" "$GOPATH/bin" "$IDE_HOME/.cache" && chmod -R 1777 "$GOPATH"
+    doas chown -R $IDE_USER:$IDE_USER /jasonben/ide/go && \
+    mkdir -p "$GOPATH/src" "$GOPATH/bin" "$IDE_HOME/.cache" && \
+    chmod -R 1777 "$GOPATH"
 
 COPY --chown=$IDE_USER ./code                           $IDE_HOME/code
 COPY --chown=$IDE_USER ./dotfiles/git/gitconfig         $IDE_HOME/.gitconfig
