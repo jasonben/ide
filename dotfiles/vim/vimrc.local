@@ -66,6 +66,12 @@ nnoremap <leader>sl :call SyntaxRange#Include('#@begin=slim@', '#@end=slim@', 's
 
 let g:airline_powerline_fonts = 1
 let g:airline_theme='base16'
+let g:airline_left_sep = "\uE0B4"
+let g:airline_right_sep = "\uE0B6"
+
+" set the CN (column number) symbol:
+let g:airline_section_z = airline#section#create(["\uE0A1" . '%{line(".")}' . "\uE0A3" . '%{col(".")}'])
+
 let g:gitgutter_enabled = 1
 let g:ide_tmux_socket = $HOME . "/.host_tmux_socket"
 let g:jsx_ext_required = 0
