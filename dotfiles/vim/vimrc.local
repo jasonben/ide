@@ -62,6 +62,8 @@ nnoremap <leader>hs :History/!<CR>
 nnoremap <leader>w :Windows!<CR>
 nnoremap <leader>rg :Rg!<CR>
 nnoremap <leader>sl :call SyntaxRange#Include('#@begin=slim@', '#@end=slim@', 'slim', 'NonText')<CR>
+nnoremap <leader>v :split<CR>
+nnoremap <leader>h :vsplit<CR>
 "/ Leader hotkeys
 
 let g:airline_powerline_fonts = 1
