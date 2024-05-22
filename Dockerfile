@@ -1,4 +1,5 @@
 ARG IDE_BASE_IMAGE
+
 FROM ${IDE_BASE_IMAGE}
 
 COPY --chown=$IDE_USER ./dotfiles/vim/init.vim            /etc/xdg/nvim/sysinit.vim
