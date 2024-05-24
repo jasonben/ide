@@ -38,8 +38,10 @@ alias urlencode='python -c "import sys, urllib as ul; print ul.quote_plus(sys.ar
 alias lsln="ls -l `find . -maxdepth 1 -type l -print`"
 alias bcp="rsync -avzu --progress"
 alias dc='docker compose'
-alias install-docker='curl -sSL https://get.docker.com | sudo sh && sudo usermod -aG docker $(whoami)'
+alias install-docker='curl -sSL https://get.docker.com | sudo sh'
 alias cx="chmod +x"
-
-alias webpacker="nvm use 12.22.12 && bin/webpack-dev-server"
 alias kanban="mkdir -p ~/code/kanban && cd ~/code/kanban && tree -C"
+unalias l # defined by oh-my-zsh
+local exa_custom='exa --icons --git --color --long --git-ignore --no-permissions --time-style "+%Y/%m/%d"'
+alias l="$exa_custom"
+alias lt="$exa_custom --tree"
