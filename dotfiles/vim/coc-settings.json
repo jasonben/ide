@@ -1,6 +1,8 @@
 {
   "codeLens.enable": true,
   "coc.preferences.formatOnType": true,
-  "solargraph.useBundler": false,
-    "solargraph.commandPath": "$BUNDLE_BIN/solargraph"
+  "solargraph.useBundler": true,
+  // "solargraph.commandPath": "$BUNDLE_BIN/solargraph",
+  "solargraph.promptDownload": true,
+  "solargraph.checkGemVersion": false
 }

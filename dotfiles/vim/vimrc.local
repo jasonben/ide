@@ -137,8 +137,8 @@ let g:ale_linters = {}
 let g:ale_linters['python'] = ['flake8', 'pylint']
 let g:ale_linters['ruby'] = ['rubocop']
 let g:ale_linters['sh'] = ['shellcheck']
-let g:ale_linters['dockerfile'] = ['hadolint']
-let g:ale_dockerfile_hadolint_use_docker='yes'
+" let g:ale_linters['dockerfile'] = ['hadolint']
+" let g:ale_dockerfile_hadolint_use_docker='yes'
 "/ ale
 
 " base16 shell integration
@@ -204,3 +204,6 @@ set mouse=a
 set foldmethod=indent
 set foldlevel=1
 set foldclose=all
+" Remove automatic comment insertion on new lines and after hitting 'o'
+autocmd FileType * setlocal formatoptions-=r
+autocmd FileType * setlocal formatoptions-=o

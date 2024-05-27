@@ -17,7 +17,8 @@ module Docker
           ENV[key] = value
         end
       else
-        puts "Warning: .env file not found."
+        puts "Error: .env file not found."
+        exit 1
       end
     end
 
