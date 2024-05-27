@@ -4,7 +4,7 @@ module Docker
   class Build
     def initialize
       load_env
-      check_vars('IDE_DOCKER_IMAGE', 'IDE_BASE_IMAGE')
+      check_vars('IDE_DOCKER_IMAGE', 'IDE_BASE_IMAGE', 'REPO')
       create_builder
       build
     end
@@ -41,7 +41,8 @@ module Docker
         'docker', 'buildx', 'build',
         '--load',
         "--build-arg IDE_BASE_IMAGE=#{ENV['IDE_BASE_IMAGE']}",
-        "-t #{ENV['IDE_DOCKER_IMAGE']}",
+        "--build-arg REPO=#{ENV['REPO']}",
+        "-t #{ENV['REPO']}#{ENV['IDE_DOCKER_IMAGE']}",
         '.'
       ].join(' '))
     end

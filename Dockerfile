@@ -1,6 +1,7 @@
+ARG REPO
 ARG IDE_BASE_IMAGE
 
-FROM ${IDE_BASE_IMAGE}
+FROM ${REPO}${IDE_BASE_IMAGE}
 
 COPY --chown=$IDE_USER ./dotfiles/vim/init.vim            /etc/xdg/nvim/sysinit.vim
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
