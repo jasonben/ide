@@ -18,26 +18,9 @@
 #MMMWWNNNNNNNNNNNNNNNNNNNNNNNNNNNNWWMMMM  iiiiiiii   ddddddddd   ddddd    eeeeeeeeeeeeee
 ```
 
-# Prerequisites
-
-## curl, Docker
-
-```sh
-# linux (X86_64 / arm64)
-curl -sSL https://get.docker.com | sh
-# macOS (arm64)
-# curl -O https://desktop.docker.com/mac/main/arm64/Docker.dmg && open Docker.dmg
-```
-
-## Security-enhanced proxy for the Docker Socket
-
-```console
-git clone https://github.com/jasonben/docker-sock.git && pushd docker-sock && docker compose up -d && popd
-```
-
 # Install
 
-```sh
+```console
 curl https://jasonben.com/ide -fsSL | sh
 ```
 
@@ -47,12 +30,35 @@ curl https://jasonben.com/ide -fsSL | sh
 ide
 ```
 
-# Preferred terminal emulator
+# Preferred terminal emulator - Kitty
+
+```console
+# dnf install kitty
+# apk add kitty
+# pacman -S kitty
+curl -fsSL https://raw.githubusercontent.com/jasonben/ide/main/dotfiles/host/kitty/kitty.conf > ~/.config/kitty/kitty.conf
+```
+
+# Preferred font - JetBrainsMono Nerd Font Mono
+
+(set in kitty.conf)
+[Nerd Fonts](https://github.com/ryanoasis/nerd-fonts/releases)
+
+# Prerequisites
+
+## Install curl and docker
 
 ```sh
-# Using the default system terminal
-# install kitty
-curl https://sw.kovidgoyal.net/kitty/installer.sh -fsSL | sh
+# linux (X86_64 / arm64)
+# curl -sSL https://get.docker.com | sh
+# macOS (arm64)
+# curl -O https://desktop.docker.com/mac/main/arm64/Docker.dmg && open Docker.dmg
+# fedora
+sudo dnf -y install curl dnf-plugins-core
+sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
+sudo dnf install -y docker-ce
+sudo systemctl enable docker
+sudo systemctl start docker
 ```
 
 # Documentation (wip)
