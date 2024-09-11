@@ -1,9 +1,10 @@
-name: build custom config image
+name: build docker image and push to docker hub
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   buildx:
