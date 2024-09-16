@@ -4,7 +4,7 @@ module Docker
   class Build
     def initialize
       load_env
-      check_vars("IDE_DOCKER_IMAGE", "IDE_BASE_IMAGE")
+      check_vars('IDE_DOCKER_IMAGE', 'IDE_BASE_IMAGE')
       create_builder
       build
     end
