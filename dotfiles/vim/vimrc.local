@@ -38,6 +38,7 @@ nnoremap <leader>7 7gt
 nnoremap <leader>8 8gt
 nnoremap <leader>9 9gt
 nnoremap <leader>0 :tablast<cr>
+nnoremap <C-f> :NERDTreeFind<CR>
 " prevent clobbering your yanked content that you wish to paste multiple times.
 xnoremap p "_dP
 "/ Custom keymaps
