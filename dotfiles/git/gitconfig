@@ -2,8 +2,6 @@
   path = ~/.config/ide/context/work/git-name-email
 [includeIf "gitdir:~/code/personal/"]
   path = ~/.config/ide/context/personal/git-name-email
-[core]
-  pager = delta
 [interactive]
   diffFilter = delta --color-only
 [init]
@@ -28,37 +26,24 @@
   autoupdate = 1
 [color]
   ui = auto
-[color "branch"]
-  current = yellow bold
-  local = green bold
-  remote = cyan bold
-[color "diff"]
-  meta = yellow bold
-  frag = magenta bold
-  old = red bold
-  new = green bold
-  whitespace = red reverse
-[color "status"]
-  added = green bold
-  changed = yellow bold
-  untracked = red bold
 [merge]
-  conflictstyle = diff3
+  conflictstyle = zdiff3
 [diff]
   colorMoved = default
 [difftool]
   prompt = false
 [delta]
-  features = line-numbers decorations
+  features = line-numbers decorations side-by-side
   line-numbers = true
   navigate = true    # use n and N to move between diff sections
   light = false      # set to true if you're in a terminal w/ a light background color
+  dark = true
 [delta "decorations"]
   minus-style = red bold normal
   plus-style = green bold normal
-  minus-emph-style = white bold red
+  minus-emph-style = black bold red
   minus-non-emph-style = red bold normal
-  plus-emph-style = white bold green
+  plus-emph-style =  black bold green
   plus-non-emph-style = green bold normal
   file-style = yellow bold none
   file-decoration-style = yellow box
@@ -278,3 +263,5 @@
   smudge = git-lfs smudge -- %f
   process = git-lfs filter-process
   required = true
+
+
