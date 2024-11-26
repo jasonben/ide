@@ -1,7 +1,13 @@
-ARG REPO
 ARG IDE_BASE_IMAGE
 
-FROM ${REPO}${IDE_BASE_IMAGE}
+FROM ${IDE_BASE_IMAGE}
+
+ENV TMUX_PLUGIN_MANAGER_PATH=$IDE_HOME/.config/tmux/plugins
+
+RUN \
+  mkdir -p "$IDE_HOME/.config/tmux/plugins/catppuccin" && \
+  git clone -b v2.1.1 https://github.com/catppuccin/tmux.git \
+    "$IDE_HOME/.config/tmux/plugins/catppuccin/tmux"
 
 COPY --chown=$IDE_USER ./dotfiles/vim/init.vim            /etc/xdg/nvim/sysinit.vim
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
@@ -12,7 +18,6 @@ COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js       $IDE_HOME/.prettierrc.
 COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml     $IDE_HOME/.solargraph.yml
 COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf          $IDE_HOME/.tmux.conf
-
 RUN \
   echo "%%%%%%%%%%%%%%===> Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
