@@ -63,6 +63,7 @@ call plug#begin('~/.vim/plugged')
 
   Plug 'inkarkat/vim-SyntaxRange'
   Plug 'gelguy/wilder.nvim'
+  Plug 'wuelnerdotexe/vim-astro'
 call plug#end()
 
 set viminfo=%,<800,'100,/10000000,:10000000,h,f0,n~/.config/vim/.viminfo
