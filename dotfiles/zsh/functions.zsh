@@ -47,7 +47,7 @@ whoport() {
 }
 
 ctags_rails() {
-  ctags -R . $(bundle list --paths)
+  ctags -R .ide/ctags $(bundle list --paths)
 }
 
 rm_rec() {

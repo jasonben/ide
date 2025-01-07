@@ -182,7 +182,7 @@ let g:fzf_colors =
 
 set title
 set showtabline=2                                            " always show tab bar
-set tags=./.git/ctags
+set tags=./.ide/ctags
 set number                                                   " show line numbers
 set autoread                                                 " reload files when changed on disk, i.e. via `git checkout`
 set autoindent
