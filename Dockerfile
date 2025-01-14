@@ -8,6 +8,9 @@ ENV \
   IDE_HOME=/jasonben/ide
 
 ENV \
+  NODE_VERSION=23.6.0 \
+  PYTHON_VERSION=3.13 \
+  RUBY_VERSION=3.4.1 \
   HOME=$IDE_HOME \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
@@ -26,12 +29,10 @@ ENV \
   MISE_RUBY_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-ruby-gems \
   MISE_PYTHON_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-python-packages \
   MISE_NODE_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-npm-packages \
-  MISE_NODE_FLAVOR=musl
-
-  # Doesn't work on arm
-  # MISE_NODE_GPG_VERIFY=false \
-  # MISE_NODE_COMPILE=false \
-  # MISE_NODE_MIRROR_URL=https://unofficial-builds.nodejs.org/download/release/
+  MISE_NODE_FLAVOR=musl \
+  MISE_NODE_GPG_VERIFY=false \
+  MISE_NODE_COMPILE=false \
+  MISE_NODE_MIRROR_URL=https://unofficial-builds.nodejs.org/download/release/
 
 ENV \
   PATH="$GOPATH/bin:$PATH"
@@ -216,13 +217,13 @@ RUN \
   echo "Random: Install has command" && \
     git clone https://github.com/kdabir/has.git && cd has && doas make install && cd .. && rm -rf has \
     && \
-  echo "Python: Installing packages" && \
-    mise use --global python@3.13 \
+  echo "Python: Installing" && \
+    mise use --global python@$PYTHON_VERSION \
     && \
-  echo "Ruby: Installing packages" && \
-    mise use --global ruby@3.4.1 && \
-  echo "Node: Installing packages" && \
-    mise use --global node@23.6.0 \
+  echo "Ruby: Installing" && \
+    mise use --global ruby@$RUBY_VERSION && \
+  echo "Node: Installing" && \
+    { if [ "$(uname -m)" = "x86_64" ]; then mise use --global node@$NODE_VERSION; else doas apk add nodejs npm; fi; } \
     && \
   echo "Tmux: Installing catppuccin" && \
     mkdir -p "$IDE_HOME/.config/tmux/plugins/catppuccin" && \

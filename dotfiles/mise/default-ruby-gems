@@ -5,6 +5,7 @@ duckdb
 prettier_print
 pry
 rubocop
+rubocop-faker
 rubocop-rspec
 rubocop-rails
 rubocop-rake
