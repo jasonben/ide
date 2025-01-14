@@ -19,15 +19,19 @@ ENV \
   TMUX_PLUGIN_MANAGER_PATH=$IDE_HOME/.config/tmux/plugins \
   MISE_GLOBAL_CONFIG_FILE=${IDE_HOME}/.mise/config.toml \
   MISE_DATA_DIR=${IDE_HOME}/.mise/plugins-and-tool-installs \
+  MISE_CONFIG_DIR=${IDE_HOME}/.mise/config \
+  MISE_STATE_DIR=${IDE_HOME}/.mise/state \
   MISE_CACHE_DIR=${IDE_HOME}/.mise/cache \
   MISE_ALL_COMPILE=false \
   MISE_RUBY_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-ruby-gems \
   MISE_PYTHON_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-python-packages \
   MISE_NODE_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-npm-packages \
-  MISE_NODE_FLAVOR=musl \
-  MISE_NODE_COMPILE=false \
-  MISE_NODE_GPG_VERIFY=false \
-  MISE_NODE_MIRROR_URL=https://unofficial-builds.nodejs.org/download/release/
+  MISE_NODE_FLAVOR=musl
+
+  # Doesn't work on arm
+  # MISE_NODE_GPG_VERIFY=false \
+  # MISE_NODE_COMPILE=false \
+  # MISE_NODE_MIRROR_URL=https://unofficial-builds.nodejs.org/download/release/
 
 ENV \
   PATH="$GOPATH/bin:$PATH"
