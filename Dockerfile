@@ -35,141 +35,141 @@ ENV \
 # hadolint ignore=DL4006
 RUN \
   echo "System: Installing build deps" && \
-  apk update && \
-  apk add --no-cache \
-  autoconf \
-  automake \
-  binutils-gold \
-  build-base \
-  ca-certificates \
-  ffmpeg \
-  file \
-  g++ \
-  gcc \
-  gcompat \
-  glib-dev \
-  gnupg \
-  hyperfine \
-  jpeg \
-  libffi-dev \
-  libgcc \
-  libgit2 \
-  libjpeg-turbo-dev \
-  libpq \
-  libstdc++ \
-  libtool \
-  libxml2-dev \
-  libxslt-dev \
-  linux-headers \
-  make \
-  mariadb-dev \
-  musl-dev \
-  nasm \
-  ncurses \
-  pacman \
-  pandoc \
-  pkgconf \
-  poppler \
-  postgresql-client \
-  postgresql-dev \
-  pspg \
-  py3-pip \
-  py3-pygit2 \
-  py3-setuptools \
-  py3-wheel \
-  python3-dev \
-  ruby-dev \
-  shadow \
-  sqlite-dev \
-  tiff \
-  tzdata \
-  unixodbc \
-  vips-dev \
-  yaml-dev \
-  zlib \
-  zlib-dev \
-  && \
-  echo "System: Installing frequently used apps" && \
-  apk add --no-cache \
-  atuin \
-  bash \
-  bat \
-  bind-tools \
-  broot \
-  btop \
-  ctags \
-  curl \
-  delta \
-  doas \
-  docker \
-  docker-cli-buildx \
-  docker-cli-compose \
-  doctl \
-  eza \
-  fd \
-  git \
-  github-cli \
-  go \
-  gum \
-  hcloud \
-  highlight \
-  httpie \
-  jq \
-  lazydocker \
-  less \
-  libqalculate \
-  miller \
-  mise \
-  ncdu \
-  onefetch \
-  openssh-client \
-  ranger \
-  ripgrep \
-  rsync \
-  s3fs-fuse \
-  shadow \
-  shellcheck \
-  shfmt \
-  starship \
-  tailscale \
-  the_silver_searcher \
-  tmux \
-  tree \
-  unzip \
-  util-linux-misc \
-  vim \
-  watchexec \
-  wget \
-  yarn \
-  zoxide \
-  zsh \
-  && \
-  apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/community \
-  aws-cli \
-  && \
+    apk update && \
+    apk add --no-cache \
+    autoconf \
+    automake \
+    binutils-gold \
+    build-base \
+    ca-certificates \
+    ffmpeg \
+    file \
+    g++ \
+    gcc \
+    gcompat \
+    glib-dev \
+    gnupg \
+    hyperfine \
+    jpeg \
+    libffi-dev \
+    libgcc \
+    libgit2 \
+    libjpeg-turbo-dev \
+    libpq \
+    libstdc++ \
+    libtool \
+    libxml2-dev \
+    libxslt-dev \
+    linux-headers \
+    make \
+    mariadb-dev \
+    musl-dev \
+    nasm \
+    ncurses \
+    pacman \
+    pandoc \
+    pkgconf \
+    poppler \
+    postgresql-client \
+    postgresql-dev \
+    pspg \
+    py3-pip \
+    py3-pygit2 \
+    py3-setuptools \
+    py3-wheel \
+    python3-dev \
+    ruby-dev \
+    shadow \
+    sqlite-dev \
+    tiff \
+    tzdata \
+    unixodbc \
+    vips-dev \
+    yaml-dev \
+    zlib \
+    zlib-dev \
+    && \
+    echo "System: Installing frequently used apps" && \
+    apk add --no-cache \
+    atuin \
+    bash \
+    bat \
+    bind-tools \
+    broot \
+    btop \
+    ctags \
+    curl \
+    delta \
+    doas \
+    docker \
+    docker-cli-buildx \
+    docker-cli-compose \
+    doctl \
+    eza \
+    fd \
+    git \
+    github-cli \
+    go \
+    gum \
+    hcloud \
+    highlight \
+    httpie \
+    jq \
+    lazydocker \
+    less \
+    libqalculate \
+    miller \
+    mise \
+    ncdu \
+    onefetch \
+    openssh-client \
+    ranger \
+    ripgrep \
+    rsync \
+    s3fs-fuse \
+    shadow \
+    shellcheck \
+    shfmt \
+    starship \
+    tailscale \
+    the_silver_searcher \
+    tmux \
+    tree \
+    unzip \
+    util-linux-misc \
+    vim \
+    watchexec \
+    wget \
+    yarn \
+    zoxide \
+    zsh \
+    && \
+    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/community \
+    aws-cli \
+    && \
   echo "System: Done installing apps" && \
   echo "System: Configuring settings" && \
   echo "System: Changing timezone to US/Central" && \
-  cp /usr/share/zoneinfo/US/Central /etc/localtime && \
-  echo "US/Central" > /etc/timezone \
-  && \
+    cp /usr/share/zoneinfo/US/Central /etc/localtime && \
+    echo "US/Central" > /etc/timezone \
+    && \
   echo "System: Creating new user: '$IDE_USER'" && \
-  addgroup -g 1000 -S $IDE_USER && \
-  mkdir -p $IDE_HOME && \
-  adduser -D -u 1000 -G $IDE_USER -S $IDE_USER -h $IDE_HOME && \
-  usermod -s /bin/zsh $IDE_USER && \
-  echo "$IDE_USER:password" | chpasswd && \
-  chown -R "$IDE_USER:$IDE_USER" $IDE_HOME && \
-  mkdir -p /etc/doas.d && \
-  echo "permit nopass $IDE_USER as root" > /etc/doas.d/doas.conf && \
-  chown -c root:root /etc/doas.d/doas.conf && \
-  chmod -c 0400 /etc/doas.d/doas.conf && \
+    addgroup -g 1000 -S $IDE_USER && \
+    mkdir -p $IDE_HOME && \
+    adduser -D -u 1000 -G $IDE_USER -S $IDE_USER -h $IDE_HOME && \
+    usermod -s /bin/zsh $IDE_USER && \
+    echo "$IDE_USER:password" | chpasswd && \
+    chown -R "$IDE_USER:$IDE_USER" $IDE_HOME && \
+    mkdir -p /etc/doas.d && \
+    echo "permit nopass $IDE_USER as root" > /etc/doas.d/doas.conf && \
+    chown -c root:root /etc/doas.d/doas.conf && \
+    chmod -c 0400 /etc/doas.d/doas.conf && \
   echo "Ruby: Ignore ri and rdoc" && \
-  touch "$IDE_HOME/.gemrc" && \
-  echo 'gem: --no-document' >> "$IDE_HOME/.gemrc" && \
+    touch "$IDE_HOME/.gemrc" && \
+    echo 'gem: --no-document' >> "$IDE_HOME/.gemrc" && \
   echo "Tmux: Generate tmux-256color TERM" && \
-  infocmp -x tmux-256color > tmux-256color.src && \
-  /usr/bin/tic -x tmux-256color.src
+    infocmp -x tmux-256color > tmux-256color.src && \
+    /usr/bin/tic -x tmux-256color.src
 
 COPY --from=libduckdb /usr/local/lib/libduckdb.so /usr/local/lib/libduckdb.so
 COPY --from=libduckdb /usr/local/include/duckdb.h /usr/local/include/duckdb.h
@@ -237,7 +237,7 @@ RUN \
     $IDE_HOME/.tmuxinator \
     $IDE_HOME/.cache \
     $IDE_HOME/.ssh \
-  && \
+    && \
   doas chown -R ide:ide \
     $IDE_HOME/.cache \
     $IDE_HOME/.config \
@@ -278,7 +278,7 @@ RUN \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
     doas rm -rf "$IDE_HOME/.cache" && \
-    doas chown -R $IDE_USER:$IDE_USER /jasonben/ide/go && \
+    doas chown -R "$IDE_USER:$IDE_USER" "$IDE_HOME/go" && \
     mkdir -p "$GOPATH/src" "$GOPATH/bin" "$IDE_HOME/.cache" && \
     chmod -R 1777 "$GOPATH" && \
   echo "Copying dotfiles"
