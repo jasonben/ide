@@ -23,9 +23,7 @@ bindkey -s '^[t' 'file=$(fzf-tmux --exit-0); [[ ! -z "$file" ]] && vim "$file"\n
 
 eval "$(atuin init zsh)"
 eval "$(zoxide init zsh)"
-
-#eval "$(rtx activate zsh)"
-#eval "$(rtx hook-env)"
+eval "$(mise activate zsh)"
 
 function br {
     local cmd cmd_file code
