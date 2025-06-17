@@ -1,7 +1,7 @@
 FROM jasonben/duckdb:0.10.1 AS libduckdb
 FROM jasonben/go-apps AS go-apps
 FROM jasonben/rust-apps AS rust-apps
-FROM alpine:3.21 AS ide-base-image
+FROM alpine:3.22 AS ide-base-image
 
 ENV \
   IDE_USER=ide \
