@@ -218,17 +218,28 @@ RUN \
     git clone https://github.com/kdabir/has.git && cd has && doas make install && cd .. && rm -rf has \
     && \
   echo "Python: Installing" && \
-    mise use --global python@$PYTHON_VERSION \
+    { if [ "$(uname -m)" = "x86_64" ]; then \
+        mise use --global python@$PYTHON_VERSION; \
+      else \
+        export MISE_ALL_COMPILE=true && \
+        mise use --global python@$PYTHON_VERSION; \
+      fi; } \
     && \
   echo "Ruby: Installing" && \
     mise use --global ruby@$RUBY_VERSION && \
   echo "Node: Installing" && \
-    { if [ "$(uname -m)" = "x86_64" ]; then mise use --global node@$NODE_VERSION; else doas apk add nodejs npm; fi; } \
+    { if [ "$(uname -m)" = "x86_64" ]; then \
+        mise use --global node@$NODE_VERSION; \
+      else \
+        unset MISE_NODE_MIRROR_URL && \
+        export MISE_NODE_COMPILE=true && \
+        mise use --global node@$NODE_VERSION; \
+      fi; } \
     && \
   echo "Tmux: Installing catppuccin" && \
-    mkdir -p "$IDE_HOME/.config/tmux/plugins/catppuccin" && \
-    git clone -b v2.1.1 https://github.com/catppuccin/tmux.git \
-      "$IDE_HOME/.config/tmux/plugins/catppuccin/tmux" \
+    mkdir -p "$IDE_HOME/.tmux/plugins/catppuccin" && \
+    git clone -b v2.1.3 https://github.com/catppuccin/tmux.git \
+      "$IDE_HOME/.tmux/plugins/catppuccin/tmux" \
     && \
   go clean -cache && \
   doas rm -rf "$GOPATH/src" && \
