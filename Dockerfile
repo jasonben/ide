@@ -232,6 +232,7 @@ RUN \
     { if [ "$(uname -m)" = "x86_64" ]; then \
         mise use --global node@$NODE_VERSION; \
       else \
+        export MISE_ALL_COMPILE=false && \
         export MISE_NODE_MIRROR_URL="$MISE_NODE_MIRROR_URL_ARM64" && \
         mise use --global node@$NODE_VERSION; \
       fi; } \
