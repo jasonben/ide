@@ -8,7 +8,7 @@ ENV \
   IDE_HOME=/jasonben/ide
 
 ENV \
-  NODE_VERSION=23.6.0 \
+  NODE_VERSION=24.5.0 \
   PYTHON_VERSION=3.11.11 \
   RUBY_VERSION=3.4.4 \
   HOME=$IDE_HOME \
@@ -32,7 +32,8 @@ ENV \
   MISE_NODE_FLAVOR=musl \
   MISE_NODE_GPG_VERIFY=false \
   MISE_NODE_COMPILE=false \
-  MISE_NODE_MIRROR_URL=https://unofficial-builds.nodejs.org/download/release/
+  MISE_NODE_MIRROR_URL=https://unofficial-builds.nodejs.org/download/release/ \
+  MISE_NODE_MIRROR_URL_ARM64=https://node-arm64-musl-binaries.cdn.jasonben.com
 
 ENV \
   PATH="$GOPATH/bin:$PATH"
@@ -231,8 +232,7 @@ RUN \
     { if [ "$(uname -m)" = "x86_64" ]; then \
         mise use --global node@$NODE_VERSION; \
       else \
-        unset MISE_NODE_MIRROR_URL && \
-        export MISE_NODE_COMPILE=true && \
+        export MISE_NODE_MIRROR_URL="$MISE_NODE_MIRROR_URL_ARM64" && \
         mise use --global node@$NODE_VERSION; \
       fi; } \
     && \
