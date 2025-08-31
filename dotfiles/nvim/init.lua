@@ -87,6 +87,7 @@ Plug("vim-airline/vim-airline-themes")
 Plug("wesQ3/vim-windowswap")
 Plug("z0mbix/vim-shfmt", { ["for"] = "sh" })
 Plug("catppuccin/vim", { as = "catppuccin" })
+Plug("RRethy/base16-nvim")
 
 -- Snippets
 Plug("SirVer/ultisnips")

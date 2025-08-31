@@ -250,6 +250,13 @@ COPY --from=rust-apps $IDE_HOME/rust $IDE_HOME/rust
 FROM ide-base-image AS ide
 
 COPY --chown=$IDE_USER ./dotfiles/mise                                  $IDE_HOME/.mise
+
+RUN \
+  echo "Mise: Installing default packages" && \
+    cat "$IDE_HOME/.mise/default-ruby-gems" | xargs mise exec ruby@$RUBY_VERSION -- gem install && \
+    cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install && \
+    cat "$IDE_HOME/.mise/default-node-packages" | xargs mise exec node@$NODE_VERSION -- npm install -g
+
 COPY --chown=$IDE_USER ./dotfiles/nvim/                                 $IDE_HOME/.nvim
 COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml                      $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml                      $IDE_HOME/.rubocop.yml
@@ -263,10 +270,6 @@ COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOM
 COPY --chown=$IDE_USER ./dotfiles/zsh/base16-catppuccin-macchiato.sh    $IDE_HOME/.base16-shell/scripts/base16-catppuccin-macchiato.sh
 
 RUN \
-  echo "Mise: Installing default packages" && \
-    cat "$IDE_HOME/.mise/default-ruby-gems" | xargs mise exec ruby@$RUBY_VERSION -- gem install && \
-    cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install && \
-    cat "$IDE_HOME/.mise/default-node-packages" | xargs mise exec node@$NODE_VERSION -- npm install -g && \
   echo "Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
     git clone https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
