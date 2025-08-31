@@ -1,0 +1,34 @@
+{
+  "codeLens.enable": true,
+  "coc.preferences.formatOnType": true,
+  "solargraph.useBundler": false,
+  "solargraph.commandPath": "~/.config/vim/solargraph-mise",
+  "solargraph.promptDownload": true,
+  "solargraph.checkGemVersion": false,
+  "snippets.ultisnips.pythonPrompt": false,
+  "pyright.inlayHints.functionReturnTypes": false,
+  "hover.floatConfig": {
+    "border": true,
+    "rounded": true,
+    "highlight": "Normal",
+    "borderhighlight": "CatppuccinMacchiatoBlue"
+  },
+  "signature.floatConfig": {
+    "border": true,
+    "rounded": true,
+    "highlight": "Normal",
+    "borderhighlight": "CatppuccinMacchiatoBlue"
+  },
+  "suggest.floatConfig": {
+    "border": true,
+    "rounded": true,
+    "highlight": "Normal",
+    "borderhighlight": "CatppuccinMacchiatoBlue"
+  },
+  "diagnostic.floatConfig": {
+    "border": true,
+    "rounded": true,
+    "highlight": "Normal",
+    "borderhighlight": "CatppuccinMacchiatoBlue"
+  },
+}

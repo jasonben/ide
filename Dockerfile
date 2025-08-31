@@ -1,4 +1,3 @@
-FROM jasonben/duckdb:0.10.1 AS libduckdb
 FROM jasonben/go-apps AS go-apps
 FROM jasonben/rust-apps AS rust-apps
 FROM alpine:3.22 AS ide-base-image
@@ -127,9 +126,9 @@ RUN \
     miller \
     mise \
     ncdu \
+    neovim \
     onefetch \
     openssh-client \
-    ranger \
     ripgrep \
     rsync \
     s3fs-fuse \
@@ -177,8 +176,6 @@ RUN \
     infocmp -x tmux-256color > tmux-256color.src && \
     /usr/bin/tic -x tmux-256color.src
 
-COPY --from=libduckdb /usr/local/lib/libduckdb.so /usr/local/lib/libduckdb.so
-COPY --from=libduckdb /usr/local/include/duckdb.h /usr/local/include/duckdb.h
 COPY ./dotfiles/mise $IDE_HOME/.mise
 
 USER $IDE_USER
@@ -267,15 +264,16 @@ COPY --from=rust-apps $IDE_HOME/rust $IDE_HOME/rust
 
 FROM ide-base-image AS ide
 
-COPY --chown=$IDE_USER ./dotfiles/vim/init.vim            /etc/xdg/nvim/sysinit.vim
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc           $IDE_HOME/.dotfiles/vim/vimrc.coc
-COPY --chown=$IDE_USER ./dotfiles/vim/empty               $IDE_HOME/.dotfiles/vim/vimrc.local
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background    $IDE_HOME/.vimrc_background
-COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js       $IDE_HOME/.prettierrc.js
+COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml     $IDE_HOME/.solargraph.yml
 COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf          $IDE_HOME/.tmux.conf
+COPY --chown=$IDE_USER ./dotfiles/vim/empty               $IDE_HOME/.dotfiles/vim/vimrc.local
+COPY --chown=$IDE_USER ./dotfiles/nvim/                   /etc/xdg/nvim/
+COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js       $IDE_HOME/.prettierrc.js
+COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
+COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc           $IDE_HOME/.dotfiles/vim/vimrc.coc
+COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background    $IDE_HOME/.vimrc_background
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
@@ -288,6 +286,11 @@ RUN \
     && \
   echo "Vim: Installing helptags" && \
     VIM_HELPTAGS="$(vim -c ':helptags ALL' -c ':q')" && \
+  echo "Neovim: Installing plugins" && \
+    NEOVIM_PLUG_INSTALL="$(nvim +'PlugInstall --sync' +qa >/dev/null 2>/dev/null)" \
+    && \
+  echo "Neovim: Installing helptags" && \
+    NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" && \
   echo "Config: Git" && \
     git config --global core.excludesfile "$IDE_HOME/.gitignore" && \
   echo "Cleaning up" && \
@@ -301,13 +304,13 @@ RUN \
   echo "Copying dotfiles"
 
 COPY --chown=$IDE_USER ./code                           $IDE_HOME/code
+COPY --chown=$IDE_USER ./dotfiles/                      $IDE_HOME/.dotfiles
 COPY --chown=$IDE_USER ./dotfiles/git/gitconfig         $IDE_HOME/.gitconfig
 COPY --chown=$IDE_USER ./dotfiles/git/gitignore         $IDE_HOME/.gitignore
+COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf      $IDE_HOME/.gitmux.conf
+COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc           $IDE_HOME/.usqlrc
 COPY --chown=$IDE_USER ./dotfiles/vim/coc-settings.json $IDE_HOME/.vim/coc-settings.json
 COPY --chown=$IDE_USER ./dotfiles/vim/editorconfig      $IDE_HOME/.editorconfig
+COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml     $IDE_HOME/.starship.toml
 COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile          $IDE_HOME/.zprofile
 COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc             $IDE_HOME/.zshrc
-COPY --chown=$IDE_USER ./dotfiles/                      $IDE_HOME/.dotfiles
-COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml     $IDE_HOME/.starship.toml
-COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc           $IDE_HOME/.usqlrc
-COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf      $IDE_HOME/.gitmux.conf
