@@ -25,9 +25,6 @@ ENV \
   MISE_STATE_DIR=${IDE_HOME}/.mise/state \
   MISE_CACHE_DIR=${IDE_HOME}/.mise/cache \
   MISE_ALL_COMPILE=false \
-  MISE_RUBY_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-ruby-gems \
-  MISE_PYTHON_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-python-packages \
-  MISE_NODE_DEFAULT_PACKAGES_FILE=${IDE_HOME}/.mise/default-npm-packages \
   MISE_NODE_FLAVOR=musl \
   MISE_NODE_GPG_VERIFY=false \
   MISE_NODE_COMPILE=false \
@@ -264,6 +261,10 @@ COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc           $IDE_HOME/.dotfiles/vi
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background    $IDE_HOME/.vimrc_background
 
 RUN \
+  echo "Mise: Installing default packages" && \
+    cat "$IDE_HOME/.mise/default-ruby-gems" | xargs gem install && \
+    cat "$IDE_HOME/.mise/default-python-packages" | xargs python -m pip install && \
+    cat "$IDE_HOME/.mise/default-node-packages" | xargs npm install -g && \
   echo "Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
     git clone https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \

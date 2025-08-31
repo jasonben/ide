@@ -1,5 +1,6 @@
 -- Set shell
 vim.o.shell = vim.fn.exepath("zsh")
+vim.env.PATH = vim.env.HOME .. "/.mise/plugins-and-tool-installs/shims:" .. vim.env.PATH
 
 -- Python host program
 -- NOTE: this is required for python to work
