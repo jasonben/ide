@@ -3,6 +3,7 @@ bash-language-server
 chokidar-cli
 dockerfilelint
 gzip-size-cli
+neovim
 np
 prettier
 prettier-plugin-autocorrect

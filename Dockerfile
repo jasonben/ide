@@ -176,18 +176,12 @@ RUN \
     infocmp -x tmux-256color > tmux-256color.src && \
     /usr/bin/tic -x tmux-256color.src
 
-COPY ./dotfiles/mise $IDE_HOME/.mise
-
 USER $IDE_USER
 WORKDIR $IDE_HOME
 
 RUN \
   echo "Zsh: Installing ohmyzsh" && \
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
-    && \
-  echo "Zsh: Installing powerlevel10k prompt" && \
-    git clone --depth=1 https://github.com/romkatv/powerlevel10k.git \
-      $IDE_HOME/.oh-my-zsh/custom/themes/powerlevel10k \
     && \
   echo "Zsh: Installing auto suggestions" && \
     git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git \
@@ -204,13 +198,6 @@ RUN \
   echo "Zsh: Installing base16-shell" && \
     git clone --depth=1 https://github.com/base16-project/base16-shell.git \
       $IDE_HOME/.base16-shell \
-    && \
-  echo "Mise: Chown directories" && \
-    doas chown -R "$IDE_USER:$IDE_USER" $IDE_HOME/.mise \
-    && \
-  echo "Vim: Installing vim-plug" && \
-    curl -fLo ~/.vim/autoload/plug.vim \
-      --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
     && \
   echo "Random: Install has command" && \
     git clone https://github.com/kdabir/has.git && cd has && doas make install && cd .. && rm -rf has \
@@ -264,12 +251,13 @@ COPY --from=rust-apps $IDE_HOME/rust $IDE_HOME/rust
 
 FROM ide-base-image AS ide
 
+COPY --chown=$IDE_USER ./dotfiles/mise                    $IDE_HOME/.mise
+COPY --chown=$IDE_USER ./dotfiles/nvim/                   $IDE_HOME/.nvim
 COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml     $IDE_HOME/.solargraph.yml
 COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf          $IDE_HOME/.tmux.conf
 COPY --chown=$IDE_USER ./dotfiles/vim/empty               $IDE_HOME/.dotfiles/vim/vimrc.local
-COPY --chown=$IDE_USER ./dotfiles/nvim/                   /etc/xdg/nvim/
 COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js       $IDE_HOME/.prettierrc.js
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc           $IDE_HOME/.dotfiles/vim/vimrc.coc
@@ -281,18 +269,24 @@ RUN \
     git clone https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
     "$IDE_HOME/.tmux/plugins/tpm/bin/install_plugins" \
     && \
+  echo "Vim: Installing vim-plug" && \
+    curl -fLo "$IDE_HOME/.vim/autoload/plug.vim" \
+      --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
+    && \
   echo "Vim: Installing plugins" && \
     VIM_PLUG_INSTALL="$(vim +'PlugInstall --sync' +qa >/dev/null 2>/dev/null)" \
     && \
   echo "Vim: Installing helptags" && \
     VIM_HELPTAGS="$(vim -c ':helptags ALL' -c ':q')" && \
+  echo "Neovim: Installing vim-plug" && \
+    curl -fLo "$IDE_HOME/.nvim/autoload/plug.vim" \
+      --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
+    && \
   echo "Neovim: Installing plugins" && \
     NEOVIM_PLUG_INSTALL="$(nvim +'PlugInstall --sync' +qa >/dev/null 2>/dev/null)" \
     && \
   echo "Neovim: Installing helptags" && \
     NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" && \
-  echo "Config: Git" && \
-    git config --global core.excludesfile "$IDE_HOME/.gitignore" && \
   echo "Cleaning up" && \
     go clean -cache && \
     doas rm -rf "$GOPATH/src" && \
@@ -303,7 +297,6 @@ RUN \
     chmod -R 1777 "$GOPATH" && \
   echo "Copying dotfiles"
 
-COPY --chown=$IDE_USER ./code                           $IDE_HOME/code
 COPY --chown=$IDE_USER ./dotfiles/                      $IDE_HOME/.dotfiles
 COPY --chown=$IDE_USER ./dotfiles/git/gitconfig         $IDE_HOME/.gitconfig
 COPY --chown=$IDE_USER ./dotfiles/git/gitignore         $IDE_HOME/.gitignore
