@@ -525,13 +525,16 @@ end, { nargs = "*", bang = true })
 
 vim.g.coc_borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰" }
 
--- Colorscheme
+-- Set up base16 colorscheme sync
+local function setup_base16()
+  -- Enable 256 color support
+  vim.opt.termguicolors = true
 
-vim.o.termguicolors = true
-vim.g.base16_shell_path = "~/.base16-shell/scripts"
-
-local base16_theme = vim.env.BASE16_THEME
-if base16_theme and (not vim.g.colors_name or vim.g.colors_name ~= "base16-" .. base16_theme) then
-  vim.g.base16colorspace = 256
-  vim.cmd("colorscheme base16-" .. base16_theme)
+  local base16_theme = vim.env.BASE16_THEME
+  if base16_theme and base16_theme ~= "" then
+    vim.cmd("colorscheme base16-" .. base16_theme)
+  end
 end
+
+-- Colorscheme
+setup_base16()
