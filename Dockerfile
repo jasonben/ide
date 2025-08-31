@@ -267,7 +267,6 @@ COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js                     $IDE_HOM
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc                             $IDE_HOME/.vimrc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOME/.dotfiles/vim/vimrc.coc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
-COPY --chown=$IDE_USER ./dotfiles/zsh/base16-catppuccin-macchiato.sh    $IDE_HOME/.base16-shell/scripts/base16-catppuccin-macchiato.sh
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
