@@ -19,11 +19,12 @@ ENV \
   BUNDLE_SILENCE_ROOT_WARNING=1 \
   PSQL_PAGER='pspg -X -b' \
   TMUX_PLUGIN_MANAGER_PATH=$IDE_HOME/.config/tmux/plugins \
-  MISE_GLOBAL_CONFIG_FILE=${IDE_HOME}/.mise/config.toml \
-  MISE_DATA_DIR=${IDE_HOME}/.mise/plugins-and-tool-installs \
-  MISE_CONFIG_DIR=${IDE_HOME}/.mise/config \
-  MISE_STATE_DIR=${IDE_HOME}/.mise/state \
-  MISE_CACHE_DIR=${IDE_HOME}/.mise/cache \
+  COC_USER_CONFIG=$IDE_HOME/.nvim/coc-settings.json \
+  MISE_GLOBAL_CONFIG_FILE=$IDE_HOME/.mise/config.toml \
+  MISE_DATA_DIR=$IDE_HOME/.mise/plugins-and-tool-installs \
+  MISE_CONFIG_DIR=$IDE_HOME/.mise/config \
+  MISE_STATE_DIR=$IDE_HOME/.mise/state \
+  MISE_CACHE_DIR=$IDE_HOME/.mise/cache \
   MISE_ALL_COMPILE=false \
   MISE_NODE_FLAVOR=musl \
   MISE_NODE_GPG_VERIFY=false \
@@ -248,23 +249,24 @@ COPY --from=rust-apps $IDE_HOME/rust $IDE_HOME/rust
 
 FROM ide-base-image AS ide
 
-COPY --chown=$IDE_USER ./dotfiles/mise                    $IDE_HOME/.mise
-COPY --chown=$IDE_USER ./dotfiles/nvim/                   $IDE_HOME/.nvim
-COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
-COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml        $IDE_HOME/.rubocop.yml
-COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml     $IDE_HOME/.solargraph.yml
-COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf          $IDE_HOME/.tmux.conf
-COPY --chown=$IDE_USER ./dotfiles/vim/empty               $IDE_HOME/.dotfiles/vim/vimrc.local
-COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js       $IDE_HOME/.prettierrc.js
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc               $IDE_HOME/.vimrc
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc           $IDE_HOME/.dotfiles/vim/vimrc.coc
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background    $IDE_HOME/.vimrc_background
+COPY --chown=$IDE_USER ./dotfiles/mise                                  $IDE_HOME/.mise
+COPY --chown=$IDE_USER ./dotfiles/nvim/                                 $IDE_HOME/.nvim
+COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml                      $IDE_HOME/.rubocop.yml
+COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml                      $IDE_HOME/.rubocop.yml
+COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml                   $IDE_HOME/.solargraph.yml
+COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf                        $IDE_HOME/.tmux.conf
+COPY --chown=$IDE_USER ./dotfiles/vim/empty                             $IDE_HOME/.dotfiles/vim/vimrc.local
+COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js                     $IDE_HOME/.prettierrc.js
+COPY --chown=$IDE_USER ./dotfiles/vim/vimrc                             $IDE_HOME/.vimrc
+COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOME/.dotfiles/vim/vimrc.coc
+COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
+COPY --chown=$IDE_USER ./dotfiles/zsh/base16-catppuccin-macchiato.sh    $IDE_HOME/.base16-shell/scripts/base16-catppuccin-macchiato.sh
 
 RUN \
   echo "Mise: Installing default packages" && \
-    cat "$IDE_HOME/.mise/default-ruby-gems" | xargs gem install && \
-    cat "$IDE_HOME/.mise/default-python-packages" | xargs python -m pip install && \
-    cat "$IDE_HOME/.mise/default-node-packages" | xargs npm install -g && \
+    cat "$IDE_HOME/.mise/default-ruby-gems" | xargs mise exec ruby@$RUBY_VERSION -- gem install && \
+    cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install && \
+    cat "$IDE_HOME/.mise/default-node-packages" | xargs mise exec node@$NODE_VERSION -- npm install -g && \
   echo "Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
     git clone https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
@@ -298,13 +300,13 @@ RUN \
     chmod -R 1777 "$GOPATH" && \
   echo "Copying dotfiles"
 
-COPY --chown=$IDE_USER ./dotfiles/                      $IDE_HOME/.dotfiles
-COPY --chown=$IDE_USER ./dotfiles/git/gitconfig         $IDE_HOME/.gitconfig
-COPY --chown=$IDE_USER ./dotfiles/git/gitignore         $IDE_HOME/.gitignore
-COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf      $IDE_HOME/.gitmux.conf
-COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc           $IDE_HOME/.usqlrc
-COPY --chown=$IDE_USER ./dotfiles/vim/coc-settings.json $IDE_HOME/.vim/coc-settings.json
-COPY --chown=$IDE_USER ./dotfiles/vim/editorconfig      $IDE_HOME/.editorconfig
-COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml     $IDE_HOME/.starship.toml
-COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile          $IDE_HOME/.zprofile
-COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc             $IDE_HOME/.zshrc
+COPY --chown=$IDE_USER ./dotfiles/                       $IDE_HOME/.dotfiles
+COPY --chown=$IDE_USER ./dotfiles/git/gitconfig          $IDE_HOME/.gitconfig
+COPY --chown=$IDE_USER ./dotfiles/git/gitignore          $IDE_HOME/.gitignore
+COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf       $IDE_HOME/.gitmux.conf
+COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc            $IDE_HOME/.usqlrc
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc-settings.json $IDE_HOME/.vim/coc-settings.json
+COPY --chown=$IDE_USER ./dotfiles/vim/editorconfig       $IDE_HOME/.editorconfig
+COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml      $IDE_HOME/.starship.toml
+COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile           $IDE_HOME/.zprofile
+COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc              $IDE_HOME/.zshrc

@@ -1,8 +1,0 @@
-{
-  "codeLens.enable": true,
-  "coc.preferences.formatOnType": true,
-  "solargraph.useBundler": false,
-  "solargraph.commandPath": "~/.dotfiles/ruby/solargraph-mise",
-  "solargraph.promptDownload": true,
-  "solargraph.checkGemVersion": false
-}

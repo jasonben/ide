@@ -2,7 +2,7 @@
   "codeLens.enable": true,
   "coc.preferences.formatOnType": true,
   "solargraph.useBundler": false,
-  "solargraph.commandPath": "~/.config/vim/solargraph-mise",
+  "solargraph.commandPath": "~/.nvim/solargraph-mise",
   "solargraph.promptDownload": true,
   "solargraph.checkGemVersion": false,
   "snippets.ultisnips.pythonPrompt": false,
