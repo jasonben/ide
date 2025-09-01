@@ -268,6 +268,7 @@ COPY --chown=$IDE_USER ./dotfiles/vim/vimrc                             $IDE_HOM
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOME/.dotfiles/vim/vimrc.coc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
 COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.config/nvim/coc-settings.json
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.vim/coc-settings.json
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
