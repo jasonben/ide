@@ -19,7 +19,7 @@ ENV \
   BUNDLE_SILENCE_ROOT_WARNING=1 \
   PSQL_PAGER='pspg -X -b' \
   TMUX_PLUGIN_MANAGER_PATH=$IDE_HOME/.config/tmux/plugins \
-  COC_USER_CONFIG=$IDE_HOME/.nvim/coc-settings.json \
+  COC_USER_CONFIG=$IDE_HOME/.nvim/coc/coc-settings.json \
   MISE_GLOBAL_CONFIG_FILE=$IDE_HOME/.mise/config.toml \
   MISE_DATA_DIR=$IDE_HOME/.mise/plugins-and-tool-installs \
   MISE_CONFIG_DIR=$IDE_HOME/.mise/config \
@@ -267,6 +267,7 @@ COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js                     $IDE_HOM
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc                             $IDE_HOME/.vimrc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOME/.dotfiles/vim/vimrc.coc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.config/nvim/coc-settings.json
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
@@ -284,11 +285,8 @@ RUN \
   echo "Vim: Installing helptags" && \
     VIM_HELPTAGS="$(vim -c ':helptags ALL' -c ':q')" && \
   echo "Neovim: Installing vim-plug" && \
-    curl -fLo "$IDE_HOME/.nvim/autoload/plug.vim" \
+    curl -fLo "$IDE_HOME/.local/share/nvim/site/autoload/plug.vim" \
       --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
-    && \
-  echo "Neovim: Installing plugins" && \
-    NEOVIM_PLUG_INSTALL="$(nvim +'PlugInstall --sync' +qa >/dev/null 2>/dev/null)" \
     && \
   echo "Neovim: Installing helptags" && \
     NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" && \
@@ -302,13 +300,12 @@ RUN \
     chmod -R 1777 "$GOPATH" && \
   echo "Copying dotfiles"
 
-COPY --chown=$IDE_USER ./dotfiles/                       $IDE_HOME/.dotfiles
-COPY --chown=$IDE_USER ./dotfiles/git/gitconfig          $IDE_HOME/.gitconfig
-COPY --chown=$IDE_USER ./dotfiles/git/gitignore          $IDE_HOME/.gitignore
-COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf       $IDE_HOME/.gitmux.conf
-COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc            $IDE_HOME/.usqlrc
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc-settings.json $IDE_HOME/.vim/coc-settings.json
-COPY --chown=$IDE_USER ./dotfiles/vim/editorconfig       $IDE_HOME/.editorconfig
-COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml      $IDE_HOME/.starship.toml
-COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile           $IDE_HOME/.zprofile
-COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc              $IDE_HOME/.zshrc
+COPY --chown=$IDE_USER ./dotfiles/                              $IDE_HOME/.dotfiles
+COPY --chown=$IDE_USER ./dotfiles/git/gitconfig                 $IDE_HOME/.gitconfig
+COPY --chown=$IDE_USER ./dotfiles/git/gitignore                 $IDE_HOME/.gitignore
+COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf              $IDE_HOME/.gitmux.conf
+COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc                   $IDE_HOME/.usqlrc
+COPY --chown=$IDE_USER ./dotfiles/vim/editorconfig              $IDE_HOME/.editorconfig
+COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml             $IDE_HOME/.starship.toml
+COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile                  $IDE_HOME/.zprofile
+COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc                     $IDE_HOME/.zshrc

@@ -7,13 +7,26 @@ vim.env.PATH = vim.env.HOME .. "/.mise/plugins-and-tool-installs/shims:" .. vim.
 -- python3 -m pip install --user --upgrade pynvim
 vim.g.python3_host_prog = vim.fn.exepath("python3") or vim.fn.exepath("python")
 
+-- Run PlugInstall if we haven't installed yet
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    -- Set up autocmd to close window after installation
+    vim.cmd([[
+      autocmd User PlugInstalled ++once :q
+    ]])
+
+    local plugs = vim.env.HOME .. '/.config/nvim/plugged'
+    if vim.fn.empty(vim.fn.glob(plugs)) > 0 then
+      vim.cmd('PlugInstall --sync')
+    end
+  end,
+})
+
 -- Disable polyglot for jsx
 vim.g.polyglot_disabled = { "jsx" }
 
 -- Plugin configuration with vim-plug
-local data_dir = vim.fn.stdpath("data") .. "/site"
--- ~/.local/share/nvim/site/autoload
-local plug_path = data_dir .. "/autoload/plug.vim"
+local plug_path = vim.env.HOME .. "./local/share/nvim/site/autoload/plug.vim"
 
 -- Auto-install vim-plug if not present
 if vim.fn.empty(vim.fn.glob(plug_path)) == 1 then
@@ -44,7 +57,7 @@ vim.call("plug#begin", "~/.config/nvim/plugged")
 Plug("airblade/vim-gitgutter")
 Plug("christoomey/vim-tmux-navigator")
 Plug("editorconfig/editorconfig-vim")
-Plug("fatih/vim-go", { ["do"] = ":GoUpdateBinaries" })
+Plug("fatih/vim-go") --, { ["do"] = ":GoUpdateBinaries" })
 Plug("gcmt/taboo.vim")
 Plug("haya14busa/incsearch.vim")
 Plug("junegunn/fzf", {
@@ -175,8 +188,11 @@ vim.g.taboo_modified_tab_flag = "🚩"
 vim.g.airline_powerline_fonts = 1
 vim.g.airline_left_sep = "\u{E0B4}"
 vim.g.airline_right_sep = "\u{E0B6}"
-vim.g.airline_section_z =
-  vim.fn["airline#section#create"]({ "\u{E0A1}" .. '%{line(".")}' .. "\u{E0A3}" .. '%{col(".")}' })
+
+if vim.fn.exists('*airline#section#create') == 1 then
+  vim.g.airline_section_z =
+    vim.fn["airline#section#create"]({ "\u{E0A1}" .. '%{line(".")}' .. "\u{E0A3}" .. '%{col(".")}' })
+end
 
 vim.g.gitgutter_enabled = 1
 vim.g.jsx_ext_required = 0
@@ -446,7 +462,9 @@ local autocmd = vim.api.nvim_create_autocmd
 autocmd("CursorHold", {
   pattern = "*",
   callback = function()
-    vim.fn.CocActionAsync("highlight")
+    if vim.fn.exists('*CocActionSync') == 1 then
+      vim.fn.CocActionAsync("highlight")
+    end
   end,
 })
 
