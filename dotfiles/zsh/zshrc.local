@@ -1,4 +1,3 @@
-#source $DOTS/zsh/p10k-config.zsh
 source $DOTS/zsh/env.zsh
 source $DOTS/zsh/functions.zsh
 source $DOTS/zsh/path.zsh
