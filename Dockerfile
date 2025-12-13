@@ -1,6 +1,7 @@
+ARG ALPINE_VERSION=3.23
 FROM jasonben/go-apps AS go-apps
 FROM jasonben/rust-apps AS rust-apps
-FROM alpine:3.22 AS ide-base-image
+FROM alpine:${ALPINE_VERSION} AS ide-base-image
 
 ENV \
   IDE_USER=ide \
@@ -9,7 +10,7 @@ ENV \
 ENV \
   NODE_VERSION=24.5.0 \
   PYTHON_VERSION=3.11.11 \
-  RUBY_VERSION=3.4.4 \
+  RUBY_VERSION=3.4.7 \
   HOME=$IDE_HOME \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
@@ -18,6 +19,7 @@ ENV \
   GOPATH=$IDE_HOME/go \
   BUNDLE_SILENCE_ROOT_WARNING=1 \
   PSQL_PAGER='pspg -X -b' \
+  BASE16_THEME=catppuccin-macchiato \
   TMUX_PLUGIN_MANAGER_PATH=$IDE_HOME/.config/tmux/plugins \
   COC_USER_CONFIG=$IDE_HOME/.nvim/coc/coc-settings.json \
   MISE_GLOBAL_CONFIG_FILE=$IDE_HOME/.mise/config.toml \

@@ -7,21 +7,6 @@ vim.env.PATH = vim.env.HOME .. "/.mise/plugins-and-tool-installs/shims:" .. vim.
 -- python3 -m pip install --user --upgrade pynvim
 vim.g.python3_host_prog = vim.fn.exepath("python3") or vim.fn.exepath("python")
 
--- Run PlugInstall if we haven't installed yet
-vim.api.nvim_create_autocmd("VimEnter", {
-  callback = function()
-    -- Set up autocmd to close window after installation
-    vim.cmd([[
-      autocmd User PlugInstalled ++once :q
-    ]])
-
-    local plugs = vim.env.HOME .. '/.config/nvim/plugged'
-    if vim.fn.empty(vim.fn.glob(plugs)) > 0 then
-      vim.cmd('PlugInstall --sync')
-    end
-  end,
-})
-
 -- Disable polyglot for jsx
 vim.g.polyglot_disabled = { "jsx" }
 
@@ -37,17 +22,22 @@ if vim.fn.empty(vim.fn.glob(plug_path)) == 1 then
     "--create-dirs",
     "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim",
   })
-
-  -- TODO: this doesn't work
-  -- Create autocommand to install plugins and source config after VimEnter
-  -- vim.api.nvim_create_autocmd("VimEnter", {
-  --   callback = function()
-  --     vim.cmd("PlugInstall --sync")
-  --     vim.cmd("source $MYVIMRC")
-  --   end,
-  --   once = true,
-  -- })
 end
+
+-- Run PlugInstall if we haven't installed yet
+vim.api.nvim_create_autocmd("VimEnter", {
+  callback = function()
+    -- Set up autocmd to close window after installation
+    vim.cmd([[
+      autocmd User PlugInstalled ++once :q
+    ]])
+
+    local plugs = vim.env.HOME .. '/.config/nvim/plugged'
+    if vim.fn.empty(vim.fn.glob(plugs)) > 0 then
+      vim.cmd('PlugInstall --sync')
+    end
+  end,
+})
 
 local Plug = vim.fn["plug#"]
 
