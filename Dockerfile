@@ -47,6 +47,7 @@ RUN \
     binutils-gold \
     build-base \
     ca-certificates \
+    clang \
     ffmpeg \
     file \
     g++ \
@@ -210,6 +211,7 @@ RUN \
         mise use --global python@$PYTHON_VERSION; \
       fi; } \
     && \
+    CC=clang pip install --no-binary=greenlet --force-reinstall greenlet && \
   echo "Ruby: Installing" && \
     mise use --global ruby@$RUBY_VERSION && \
   echo "Node: Installing" && \
