@@ -47,6 +47,8 @@ RUN \
     binutils-gold \
     build-base \
     ca-certificates \
+    clang \
+    coreutils \
     ffmpeg \
     file \
     g++ \
@@ -78,7 +80,6 @@ RUN \
     postgresql-client \
     postgresql-dev \
     pspg \
-    py3-greenlet \
     py3-pip \
     py3-pygit2 \
     py3-setuptools \
@@ -294,6 +295,8 @@ RUN \
     && \
   echo "Neovim: Installing helptags" && \
     NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" && \
+  echo "Neovim: pynvim fix.. reinstall greenlet" && \
+      mise exec python@$PYTHON_VERSION -- CC=clang python -m pip install --no-binary=greenlet --force-reinstall greenlet && \
   echo "Cleaning up" && \
     go clean -cache && \
     doas rm -rf "$GOPATH/src" && \
