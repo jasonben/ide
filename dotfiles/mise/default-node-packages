@@ -7,7 +7,6 @@ neovim
 np
 prettier
 prettier-plugin-autocorrect
-prettier-plugin-erb
 prettier-plugin-jinja-template
 prettier-plugin-pkg
 prettier-plugin-prisma

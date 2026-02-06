@@ -80,11 +80,11 @@ RUN \
     postgresql-client \
     postgresql-dev \
     pspg \
-    py3-pip \
-    py3-pygit2 \
-    py3-setuptools \
-    py3-wheel \
-    python3-dev \
+#    py3-pip \
+#    py3-pygit2 \
+#    py3-setuptools \
+#    py3-wheel \
+#    python3-dev \
     ruby-dev \
     shadow \
     sqlite-dev \
@@ -273,6 +273,7 @@ COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOM
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
 COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.config/nvim/coc-settings.json
 COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.vim/coc-settings.json
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/package.json                 $IDE_HOME/.config/coc/extensions/package.json
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
@@ -284,24 +285,24 @@ RUN \
     curl -fLo "$IDE_HOME/.vim/autoload/plug.vim" \
       --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
     && \
-  echo "Vim: Installing plugins" && \
-    VIM_PLUG_INSTALL="$(vim +'PlugInstall --sync' +qa >/dev/null 2>/dev/null)" \
-    && \
-  echo "Vim: Installing helptags" && \
-    VIM_HELPTAGS="$(vim -c ':helptags ALL' -c ':q')" && \
   echo "Neovim: Installing vim-plug" && \
     curl -fLo "$IDE_HOME/.local/share/nvim/site/autoload/plug.vim" \
       --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
     && \
-  echo "Neovim: Installing helptags" && \
-    NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" && \
   echo "Neovim: pynvim fix.. reinstall greenlet" && \
-      mise exec python@$PYTHON_VERSION -- CC=clang python -m pip install --no-binary=greenlet --force-reinstall greenlet && \
+    CC=clang mise exec python@$PYTHON_VERSION -- python -m pip install --no-binary=greenlet --force-reinstall greenlet \
+    && \
+  echo "Neovim: Installing helptags that let you use :help <topic> to search documentation" && \
+    NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" \
+    && \
   echo "Cleaning up" && \
     go clean -cache && \
+    doas rm -rf "/tmp/*" && \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
+    doas rm -rf "$IDE_HOME/.npm" && \
     doas rm -rf "$IDE_HOME/.cache" && \
+    doas rm -rf "$IDE_HOME/go/pkg" && \
     doas chown -R "$IDE_USER:$IDE_USER" "$IDE_HOME/go" && \
     mkdir -p "$GOPATH/src" "$GOPATH/bin" "$IDE_HOME/.cache" && \
     chmod -R 1777 "$GOPATH" && \
