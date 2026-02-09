@@ -1,3 +1,9 @@
+vim.g.coc_data_home = vim.env.HOME .. "/.nvim/coc"
+
+-- Plugin configuration with vim-plug
+local plugin_manager_path = vim.env.HOME .. "./local/share/nvim/site/autoload/plug.vim"
+local plugins_path = vim.env.HOME .. '/.nvim/plugins'
+
 -- Set shell
 vim.o.shell = vim.fn.exepath("zsh")
 vim.env.PATH = vim.env.HOME .. "/.mise/plugins-and-tool-installs/shims:" .. vim.env.PATH
@@ -10,15 +16,12 @@ vim.g.python3_host_prog = vim.fn.exepath("python3") or vim.fn.exepath("python")
 -- Disable polyglot for jsx
 vim.g.polyglot_disabled = { "jsx" }
 
--- Plugin configuration with vim-plug
-local plug_path = vim.env.HOME .. "./local/share/nvim/site/autoload/plug.vim"
-
 -- Auto-install vim-plug if not present
-if vim.fn.empty(vim.fn.glob(plug_path)) == 1 then
+if vim.fn.empty(vim.fn.glob(plugin_manager_path)) == 1 then
   vim.fn.system({
     "curl",
     "-fLo",
-    plug_path,
+    plugin_manager_path,
     "--create-dirs",
     "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim",
   })
@@ -32,8 +35,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
       autocmd User PlugInstalled ++once :q
     ]])
 
-    local plugs = vim.env.HOME .. '/.config/nvim/plugged'
-    if vim.fn.empty(vim.fn.glob(plugs)) > 0 then
+    if vim.fn.empty(vim.fn.glob(plugins_path)) > 0 then
       vim.cmd('PlugInstall --sync')
     end
   end,
@@ -41,7 +43,7 @@ vim.api.nvim_create_autocmd("VimEnter", {
 
 local Plug = vim.fn["plug#"]
 
-vim.call("plug#begin", "~/.config/nvim/plugged")
+vim.call("plug#begin", plugins_path)
 
 -- Plugins
 Plug("airblade/vim-gitgutter")
@@ -159,8 +161,8 @@ vim.o.foldclose = "all"
 vim.o.tags = "./.ide/ctags"
 
 -- Directory settings
-vim.o.directory = vim.fn.stdpath("data") .. "/swap//"
 vim.fn.mkdir(vim.fn.stdpath("data") .. "/swap", "p")
+vim.o.directory = vim.fn.stdpath("data") .. "/swap//"
 
 -- Wildignore
 vim.o.wildignore = "log/**,node_modules/**,target/**,tmp/**,*.rbc"
@@ -196,7 +198,6 @@ vim.g.multi_cursor_skip_key = "<C-x>"
 vim.g.shfmt_fmt_on_save = 0
 vim.g.slime_dont_ask_default = 1
 vim.g.slime_target = "tmux"
-vim.g.coc_data_home = vim.fn.stdpath("data") .. "/coc"
 
 -- IDE tmux socket
 vim.g.ide_tmux_socket = os.getenv("HOME") .. "/.host_tmux_socket"

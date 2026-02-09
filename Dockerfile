@@ -80,11 +80,6 @@ RUN \
     postgresql-client \
     postgresql-dev \
     pspg \
-#    py3-pip \
-#    py3-pygit2 \
-#    py3-setuptools \
-#    py3-wheel \
-#    python3-dev \
     ruby-dev \
     shadow \
     sqlite-dev \
@@ -234,7 +229,6 @@ RUN \
   doas rm -rf "$IDE_HOME/.cache" && \
   doas rm -rf "$IDE_HOME/.mise/.cache" && \
   doas mkdir -p \
-    $IDE_HOME/.config/coc \
     $IDE_HOME/.config/ide/context/personal/zsh \
     $IDE_HOME/.config/ide/context/work/zsh \
     $IDE_HOME/.tmuxinator \
@@ -271,9 +265,13 @@ COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js                     $IDE_HOM
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc                             $IDE_HOME/.vimrc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOME/.dotfiles/vim/vimrc.coc
 COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.config/nvim/coc-settings.json
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.nvim/coc-settings.json
 COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.vim/coc-settings.json
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/package.json                 $IDE_HOME/.config/coc/extensions/package.json
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/package.json                 $IDE_HOME/.nvim/coc/extensions/package.json
+
+# echo "Neovim: Installing helptags that let you use :help <topic> to search documentation" && \
+#   NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" \
+#   && \
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
@@ -290,10 +288,8 @@ RUN \
       --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
     && \
   echo "Neovim: pynvim fix.. reinstall greenlet" && \
-    CC=clang mise exec python@$PYTHON_VERSION -- python -m pip install --no-binary=greenlet --force-reinstall greenlet \
-    && \
-  echo "Neovim: Installing helptags that let you use :help <topic> to search documentation" && \
-    NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" \
+    CC=clang mise exec python@$PYTHON_VERSION -- python -m \
+      pip install --no-binary=greenlet --force-reinstall greenlet \
     && \
   echo "Cleaning up" && \
     go clean -cache && \
