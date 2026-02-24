@@ -279,6 +279,8 @@ RUN \
     && \
   echo "Neovim: Coc install..." && \
     cd $IDE_HOME/.nvim/coc/extensions && mise exec node@$NODE_VERSION -- npm install && \
+  echo "Neovim: Plug install..." && \
+    nvim --headless +PlugInstall +qa! 2>&1 && \
   echo "Cleaning up" && \
     go clean -cache && \
     doas rm -rf "/tmp/*" && \
