@@ -278,7 +278,7 @@ RUN \
       pip install --no-binary=greenlet --force-reinstall greenlet \
     && \
   echo "Neovim: Coc install..." && \
-    cd $IDE_HOME/.nvim/coc/extensions && npm install && \
+    cd $IDE_HOME/.nvim/coc/extensions && mise exec node@$NODE_VERSION -- npm install && \
   echo "Cleaning up" && \
     go clean -cache && \
     doas rm -rf "/tmp/*" && \
