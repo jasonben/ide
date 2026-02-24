@@ -537,12 +537,13 @@ vim.g.coc_borderchars = { "─", "│", "─", "│", "╭", "╮", "╯", "╰"
 
 -- Set up base16 colorscheme sync
 local function setup_base16()
-  -- Enable 256 color support
   vim.opt.termguicolors = true
-
   local base16_theme = vim.env.BASE16_THEME
   if base16_theme and base16_theme ~= "" then
-    vim.cmd("colorscheme base16-" .. base16_theme)
+    local ok, err = pcall(vim.cmd, "colorscheme base16-" .. base16_theme)
+    if not ok then
+      vim.notify("Colorscheme not yet available", vim.log.levels.WARN)
+    end
   end
 end
 
