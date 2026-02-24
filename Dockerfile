@@ -247,7 +247,7 @@ COPY --from=rust-apps $IDE_HOME/rust $IDE_HOME/rust
 
 FROM ide-base-image AS ide
 
-COPY --chown=$IDE_USER ./dotfiles/mise                                  $IDE_HOME/.mise
+COPY --chown=$IDE_USER ./dotfiles/mise                          $IDE_HOME/.mise
 
 RUN \
   echo "Mise: Installing default packages" && \
@@ -255,33 +255,19 @@ RUN \
     cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install && \
     cat "$IDE_HOME/.mise/default-node-packages" | xargs mise exec node@$NODE_VERSION -- npm install -g
 
-COPY --chown=$IDE_USER ./dotfiles/nvim/                                 $IDE_HOME/.nvim
-COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml                      $IDE_HOME/.rubocop.yml
-COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml                      $IDE_HOME/.rubocop.yml
-COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml                   $IDE_HOME/.solargraph.yml
-COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf                        $IDE_HOME/.tmux.conf
-COPY --chown=$IDE_USER ./dotfiles/vim/empty                             $IDE_HOME/.dotfiles/vim/vimrc.local
-COPY --chown=$IDE_USER ./dotfiles/vim/prettierrc.js                     $IDE_HOME/.prettierrc.js
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc                             $IDE_HOME/.vimrc
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc.coc                         $IDE_HOME/.dotfiles/vim/vimrc.coc
-COPY --chown=$IDE_USER ./dotfiles/vim/vimrc_background                  $IDE_HOME/.vimrc_background
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.nvim/coc-settings.json
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json            $IDE_HOME/.vim/coc-settings.json
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/package.json                 $IDE_HOME/.nvim/coc/extensions/package.json
-
-# echo "Neovim: Installing helptags that let you use :help <topic> to search documentation" && \
-#   NEOVIM_HELPTAGS="$(nvim -c ':helptags ALL' -c ':q')" \
-#   && \
+COPY --chown=$IDE_USER ./dotfiles/nvim/                         $IDE_HOME/.nvim
+COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml              $IDE_HOME/.rubocop.yml
+COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml           $IDE_HOME/.solargraph.yml
+COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf                $IDE_HOME/.tmux.conf
+COPY --chown=$IDE_USER ./dotfiles/prettier/prettierrc.js        $IDE_HOME/.prettierrc.js
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json    $IDE_HOME/.nvim/coc/coc-settings.json
+COPY --chown=$IDE_USER ./dotfiles/nvim/coc/package.json         $IDE_HOME/.nvim/coc/extensions/package.json
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
     git clone https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
     "$IDE_HOME/.tmux/plugins/tpm/bin/install_plugins" \
-    && \
-  echo "Vim: Installing vim-plug" && \
-    curl -fLo "$IDE_HOME/.vim/autoload/plug.vim" \
-      --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
     && \
   echo "Neovim: Installing vim-plug" && \
     curl -fLo "$IDE_HOME/.local/share/nvim/site/autoload/plug.vim" \
@@ -291,6 +277,8 @@ RUN \
     CC=clang mise exec python@$PYTHON_VERSION -- python -m \
       pip install --no-binary=greenlet --force-reinstall greenlet \
     && \
+  echo "Neovim: Coc install..." && \
+    cd $IDE_HOME/.nvim/coc/extensions && npm install && \
   echo "Cleaning up" && \
     go clean -cache && \
     doas rm -rf "/tmp/*" && \
