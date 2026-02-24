@@ -260,8 +260,6 @@ COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml              $IDE_HOME/.ruboc
 COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml           $IDE_HOME/.solargraph.yml
 COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf                $IDE_HOME/.tmux.conf
 COPY --chown=$IDE_USER ./dotfiles/prettier/prettierrc.js        $IDE_HOME/.prettierrc.js
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/coc-settings.json    $IDE_HOME/.nvim/coc/coc-settings.json
-COPY --chown=$IDE_USER ./dotfiles/nvim/coc/package.json         $IDE_HOME/.nvim/coc/extensions/package.json
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
