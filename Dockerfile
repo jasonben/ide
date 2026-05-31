@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=3.23
+ARG ALPINE_VERSION=3.23.4
 FROM jasonben/go-apps AS go-apps
 FROM jasonben/rust-apps AS rust-apps
 FROM alpine:${ALPINE_VERSION} AS ide-base-image
@@ -9,8 +9,8 @@ ENV \
 
 ENV \
   NODE_VERSION=24.5.0 \
-  PYTHON_VERSION=3.11.11 \
-  RUBY_VERSION=3.4.7 \
+  PYTHON_VERSION=3.14.0 \
+  RUBY_VERSION=4.0.5 \
   HOME=$IDE_HOME \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
