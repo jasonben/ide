@@ -146,9 +146,6 @@ RUN \
     zoxide \
     zsh \
     && \
-    apk add --no-cache -X http://dl-cdn.alpinelinux.org/alpine/edge/community \
-    aws-cli \
-    && \
   echo "System: Done installing apps" && \
   echo "System: Configuring settings" && \
   echo "System: Changing timezone to US/Central" && \
