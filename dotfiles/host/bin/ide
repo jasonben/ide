@@ -18,6 +18,7 @@ ide () {
     -v jasonben_ide_bundle:/jasonben/ide/bundle \
     -v jasonben_ide_cache:/jasonben/ide/.cache \
     -v jasonben_ide_code:/jasonben/ide/code \
+    -v jasonben_ide_claude:/jasonben/ide/.claude \
     -v jasonben_ide_config:/jasonben/ide/.config \
     -v jasonben_ide_local:/jasonben/ide/.local \
     -v jasonben_ide_nvim:/jasonben/ide/.nvim \
@@ -56,6 +57,7 @@ ensure_volumes() {
     jasonben_ide_nvim
     jasonben_ide_ssh
     jasonben_ide_code
+    jasonben_ide_claude
     jasonben_ide_bundle
     jasonben_ide_local
     jasonben_ide_config

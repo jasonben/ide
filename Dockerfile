@@ -12,6 +12,7 @@ ENV \
   NODE_VERSION=24.5.0 \
   PYTHON_VERSION=3.14.0 \
   RUBY_VERSION=4.0.5 \
+  DUCKDB_VERSION=1.5.3 \
   HOME=$IDE_HOME \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
@@ -23,6 +24,7 @@ ENV \
   BASE16_THEME=catppuccin-macchiato \
   TMUX_PLUGIN_MANAGER_PATH=$IDE_HOME/.config/tmux/plugins \
   COC_USER_CONFIG=$IDE_HOME/.nvim/coc/coc-settings.json \
+  CLAUDE_CONFIG_DIR=$IDE_HOME/.claude \
   MISE_GLOBAL_CONFIG_FILE=$IDE_HOME/.mise/config.toml \
   MISE_DATA_DIR=$IDE_HOME/.mise/plugins-and-tool-installs \
   MISE_CONFIG_DIR=$IDE_HOME/.mise/config \
@@ -228,6 +230,17 @@ RUN \
     git clone --depth=1 -b v2.1.3 https://github.com/catppuccin/tmux.git \
       "$IDE_HOME/.tmux/plugins/catppuccin/tmux" \
     && \
+  echo "Duckdb: Installing" && \
+    { if [ "$(uname -m)" = "x86_64" ]; then \
+        curl -fsSL https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb_cli-linux-amd64-musl.gz -o /tmp/duckdb.gz && \
+        gunzip /tmp/duckdb.gz && \
+        doas mv /tmp/duckdb /usr/local/bin/duckdb; \
+      else \
+        curl -fsSL https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb_cli-linux-arm64-musl.gz -o /tmp/duckdb.gz && \
+        gunzip /tmp/duckdb.gz && \
+        doas mv /tmp/duckdb /usr/local/bin/duckdb; \
+      fi; } && doas chmod +x /usr/local/bin/duckdb \
+    && \
   echo "Cleaning up" && \
     mise exec go@$GO_VERSION -- go clean -cache && \
     doas rm -rf /tmp/* && \
@@ -240,12 +253,14 @@ RUN \
       $IDE_HOME/.config/ide/context/work/zsh \
       $IDE_HOME/.tmuxinator \
       $IDE_HOME/.cache \
+      $IDE_HOME/.claude \
       $IDE_HOME/.ssh \
       $IDE_HOME/bundle \
       && \
     doas chown -R ide:ide \
       $IDE_HOME/bundle \
       $IDE_HOME/.cache \
+      $IDE_HOME/.claude \
       $IDE_HOME/.config \
       $IDE_HOME/.ssh \
       $IDE_HOME/.tmuxinator
