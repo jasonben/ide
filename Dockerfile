@@ -141,6 +141,7 @@ RUN \
     tree \
     unzip \
     util-linux-misc \
+    uv \
     vim \
     watchexec \
     wget \
@@ -163,7 +164,6 @@ RUN \
     adduser -D -u 1000 -G $IDE_USER -S $IDE_USER -h $IDE_HOME && \
     usermod -s /bin/zsh $IDE_USER && \
     echo "$IDE_USER:password" | chpasswd && \
-    chown -R "$IDE_USER:$IDE_USER" $IDE_HOME && \
     mkdir -p /etc/doas.d && \
     echo "permit nopass $IDE_USER as root" > /etc/doas.d/doas.conf && \
     chown -c root:root /etc/doas.d/doas.conf && \
@@ -173,7 +173,8 @@ RUN \
     echo 'gem: --no-document' >> "$IDE_HOME/.gemrc" && \
   echo "Tmux: Generate tmux-256color TERM" && \
     infocmp -x tmux-256color > tmux-256color.src && \
-    /usr/bin/tic -x tmux-256color.src
+    /usr/bin/tic -x tmux-256color.src && \
+  chown -R "$IDE_USER:$IDE_USER" $IDE_HOME
 
 USER $IDE_USER
 WORKDIR $IDE_HOME
@@ -240,8 +241,10 @@ RUN \
       $IDE_HOME/.tmuxinator \
       $IDE_HOME/.cache \
       $IDE_HOME/.ssh \
+      $IDE_HOME/bundle \
       && \
     doas chown -R ide:ide \
+      $IDE_HOME/bundle \
       $IDE_HOME/.cache \
       $IDE_HOME/.config \
       $IDE_HOME/.ssh \
@@ -292,7 +295,6 @@ RUN \
     doas rm -rf "$IDE_HOME/go/pkg" && \
     doas chown -R "$IDE_USER:$IDE_USER" "$IDE_HOME/go" && \
     mkdir -p "$GOPATH/src" "$GOPATH/bin" "$IDE_HOME/.cache" && \
-    chmod -R 1777 "$GOPATH" && \
   echo "Copying dotfiles"
 
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/editorconfig/editorconfig    $IDE_HOME/.editorconfig
