@@ -10,8 +10,8 @@ require:
 
 AllCops:
   NewCops: enable
-  TargetRubyVersion: 3.2
-  TargetRailsVersion: 6.1
+  TargetRubyVersion: 4.0
+  TargetRailsVersion: 8.1
 
 # https://github.com/standardrb/standard/blob/main/config/base.yml
 Bundler/DuplicatedGem:

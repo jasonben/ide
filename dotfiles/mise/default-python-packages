@@ -2,7 +2,9 @@ black
 nginx-language-server
 openpyxl
 pynvim
+pyright
 python-language-server
 ranger-fm
+ruff
 tldr
 visidata

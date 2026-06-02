@@ -8,16 +8,6 @@ ide () {
   ide_docker_image="${IDE_DOCKER_IMAGE:-jasonben/ide}"
   host_hostname=$(cat /etc/hostname)
 
-  docker volume create jasonben_ide_nvim 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_ssh 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_code 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_bundle 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_local 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_config 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_cache 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_tailscale 1>/dev/null 2>/dev/null
-  docker volume create jasonben_ide_tmuxinator 1>/dev/null 2>/dev/null
-
   docker run -it --rm \
     --log-driver=none \
     --privileged \
@@ -40,12 +30,46 @@ ide () {
 }
 
 docker_socket() {
-  git clone -q https://github.com/jasonben/docker-sock.git /tmp/docker-sock && \
-  pushd /tmp/docker-sock 1>/dev/null 2>/dev/null && \
-  docker compose up -d 1>/dev/null 2>/dev/null && \
-  popd 1>/dev/null 2>/dev/null
-  rm -rf /tmp/docker-sock
+  local network="dockersock"
+  local project="docker-sock"
+  local tmp_dir="/tmp/docker-sock"
+
+  # Check if network exists, create if not
+  if ! docker network ls --format '{{.Name}}' | grep -q "^${network}$"; then
+    echo "Creating network: ${network}"
+    docker network create "${network}" 1>/dev/null
+  fi
+
+  # Check if the compose project is already running
+  if ! docker compose ls --format json 2>/dev/null | grep -q "\"${project}\""; then
+    echo "Starting docker-sock compose project..."
+    git clone -q https://github.com/jasonben/docker-sock.git "${tmp_dir}" && \
+    pushd "${tmp_dir}" 1>/dev/null 2>/dev/null && \
+    docker compose up -d 1>/dev/null 2>/dev/null && \
+    popd 1>/dev/null 2>/dev/null
+    rm -rf "${tmp_dir}"
+  fi
 }
 
+ensure_volumes() {
+  local volumes=(
+    jasonben_ide_nvim
+    jasonben_ide_ssh
+    jasonben_ide_code
+    jasonben_ide_bundle
+    jasonben_ide_local
+    jasonben_ide_config
+    jasonben_ide_cache
+    jasonben_ide_tailscale
+    jasonben_ide_tmuxinator
+  )
+
+  for volume in "${volumes[@]}"; do
+    docker volume create "${volume}" 1>/dev/null 2>/dev/null
+  done
+}
+
+ensure_volumes
 docker_socket
+echo "Starting ide..."
 ide "$@"

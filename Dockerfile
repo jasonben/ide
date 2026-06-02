@@ -8,6 +8,7 @@ ENV \
   IDE_HOME=/jasonben/ide
 
 ENV \
+  GO_VERSION=1.26.0 \
   NODE_VERSION=24.5.0 \
   PYTHON_VERSION=3.14.0 \
   RUBY_VERSION=4.0.5 \
@@ -15,7 +16,7 @@ ENV \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
   SHELL=/bin/zsh \
-  EDITOR=vim \
+  EDITOR=nvim \
   GOPATH=$IDE_HOME/go \
   BUNDLE_SILENCE_ROOT_WARNING=1 \
   PSQL_PAGER='pspg -X -b' \
@@ -94,6 +95,7 @@ RUN \
     echo "System: Installing frequently used apps" && \
     apk add --no-cache \
     atuin \
+    aws-cli \
     bash \
     bat \
     bind-tools \
@@ -111,13 +113,14 @@ RUN \
     fd \
     git \
     github-cli \
-    go \
     gum \
     hcloud \
     highlight \
     httpie \
     jq \
+    just \
     lazydocker \
+    lazygit \
     less \
     libqalculate \
     miller \
@@ -129,7 +132,6 @@ RUN \
     ripgrep \
     rsync \
     s3fs-fuse \
-    shadow \
     shellcheck \
     shfmt \
     starship \
@@ -142,10 +144,13 @@ RUN \
     vim \
     watchexec \
     wget \
-    yarn \
+    yq \
     zoxide \
     zsh \
     && \
+  echo "System: installing additional apps using mise" && \
+    mise use --global terraform && \
+    mise use --global gcloud && \
   echo "System: Done installing apps" && \
   echo "System: Configuring settings" && \
   echo "System: Changing timezone to US/Central" && \
@@ -194,7 +199,7 @@ RUN \
       $IDE_HOME/.base16-shell \
     && \
   echo "Random: Install has command" && \
-    git clone https://github.com/kdabir/has.git && cd has && doas make install && cd .. && rm -rf has \
+    git clone --depth=1 https://github.com/kdabir/has.git && cd has && doas make install && cd .. && rm -rf has \
     && \
   echo "Python: Installing" && \
     { if [ "$(uname -m)" = "x86_64" ]; then \
@@ -215,53 +220,54 @@ RUN \
         mise use --global node@$NODE_VERSION; \
       fi; } \
     && \
+  echo "Go: Installing" && \
+    mise use --global go@$GO_VERSION && \
   echo "Tmux: Installing catppuccin" && \
     mkdir -p "$IDE_HOME/.tmux/plugins/catppuccin" && \
-    git clone -b v2.1.3 https://github.com/catppuccin/tmux.git \
+    git clone --depth=1 -b v2.1.3 https://github.com/catppuccin/tmux.git \
       "$IDE_HOME/.tmux/plugins/catppuccin/tmux" \
     && \
-  go clean -cache && \
-  doas rm -rf "$GOPATH/src" && \
-  doas rm -rf "$GOPATH/pkg" && \
-  doas rm -rf "$IDE_HOME/.cache" && \
-  doas rm -rf "$IDE_HOME/.mise/.cache" && \
-  doas mkdir -p \
-    $IDE_HOME/.config/ide/context/personal/zsh \
-    $IDE_HOME/.config/ide/context/work/zsh \
-    $IDE_HOME/.tmuxinator \
-    $IDE_HOME/.cache \
-    $IDE_HOME/.ssh \
-    && \
-  doas chown -R ide:ide \
-    $IDE_HOME/.cache \
-    $IDE_HOME/.config \
-    $IDE_HOME/.ssh \
-    $IDE_HOME/.tmuxinator
+  echo "Cleaning up" && \
+    mise exec go@$GO_VERSION -- go clean -cache && \
+    doas rm -rf /tmp/* && \
+    doas rm -rf "$GOPATH/src" && \
+    doas rm -rf "$GOPATH/pkg" && \
+    doas rm -rf "$IDE_HOME/.cache" && \
+    doas rm -rf "$IDE_HOME/.mise/.cache" && \
+    doas mkdir -p \
+      $IDE_HOME/.config/ide/context/personal/zsh \
+      $IDE_HOME/.config/ide/context/work/zsh \
+      $IDE_HOME/.tmuxinator \
+      $IDE_HOME/.cache \
+      $IDE_HOME/.ssh \
+      && \
+    doas chown -R ide:ide \
+      $IDE_HOME/.cache \
+      $IDE_HOME/.config \
+      $IDE_HOME/.ssh \
+      $IDE_HOME/.tmuxinator
 
-COPY --from=go-apps $IDE_HOME/go $IDE_HOME/go
-COPY --from=rust-apps $IDE_HOME/rust $IDE_HOME/rust
+COPY --from=go-apps   --chown=$IDE_USER:$IDE_USER $IDE_HOME/go $IDE_HOME/go
+COPY --from=rust-apps --chown=$IDE_USER:$IDE_USER $IDE_HOME/rust $IDE_HOME/rust
 #=====================================================================
 
 FROM ide-base-image AS ide
 
-COPY --chown=$IDE_USER ./dotfiles/mise                          $IDE_HOME/.mise
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/mise $IDE_HOME/.mise
 
 RUN \
   echo "Mise: Installing default packages" && \
-    cat "$IDE_HOME/.mise/default-ruby-gems" | xargs mise exec ruby@$RUBY_VERSION -- gem install && \
+    cat "$IDE_HOME/.mise/default-node-packages"   | xargs mise exec node@$NODE_VERSION     -- npm install -g && \
     cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install && \
-    cat "$IDE_HOME/.mise/default-node-packages" | xargs mise exec node@$NODE_VERSION -- npm install -g
+    cat "$IDE_HOME/.mise/default-ruby-gems"       | xargs mise exec ruby@$RUBY_VERSION     -- gem install
 
-COPY --chown=$IDE_USER ./dotfiles/nvim/                         $IDE_HOME/.nvim
-COPY --chown=$IDE_USER ./dotfiles/ruby/rubocop.yml              $IDE_HOME/.rubocop.yml
-COPY --chown=$IDE_USER ./dotfiles/ruby/solargraph.yml           $IDE_HOME/.solargraph.yml
-COPY --chown=$IDE_USER ./dotfiles/tmux/tmux.conf                $IDE_HOME/.tmux.conf
-COPY --chown=$IDE_USER ./dotfiles/prettier/prettierrc.js        $IDE_HOME/.prettierrc.js
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/nvim/             $IDE_HOME/.nvim
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/tmux/tmux.conf    $IDE_HOME/.tmux.conf
 
 RUN \
   echo "Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
-    git clone https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
+    git clone --depth=1 https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
     "$IDE_HOME/.tmux/plugins/tpm/bin/install_plugins" \
     && \
   echo "Neovim: Installing vim-plug" && \
@@ -277,8 +283,8 @@ RUN \
   echo "Neovim: Plug install..." && \
     nvim -es -u $IDE_HOME/.nvim/init.lua -i NONE -c "PlugInstall" -c "qa" && \
   echo "Cleaning up" && \
-    go clean -cache && \
-    doas rm -rf "/tmp/*" && \
+    mise exec go@$GO_VERSION -- go clean -cache && \
+    doas rm -rf /tmp/* && \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
     doas rm -rf "$IDE_HOME/.npm" && \
@@ -289,12 +295,15 @@ RUN \
     chmod -R 1777 "$GOPATH" && \
   echo "Copying dotfiles"
 
-COPY --chown=$IDE_USER ./dotfiles/                              $IDE_HOME/.dotfiles
-COPY --chown=$IDE_USER ./dotfiles/git/gitconfig                 $IDE_HOME/.gitconfig
-COPY --chown=$IDE_USER ./dotfiles/git/gitignore                 $IDE_HOME/.gitignore
-COPY --chown=$IDE_USER ./dotfiles/tmux/gitmux.conf              $IDE_HOME/.gitmux.conf
-COPY --chown=$IDE_USER ./dotfiles/usql/usqlrc                   $IDE_HOME/.usqlrc
-COPY --chown=$IDE_USER ./dotfiles/vim/editorconfig              $IDE_HOME/.editorconfig
-COPY --chown=$IDE_USER ./dotfiles/zsh/starship.toml             $IDE_HOME/.starship.toml
-COPY --chown=$IDE_USER ./dotfiles/zsh/zprofile                  $IDE_HOME/.zprofile
-COPY --chown=$IDE_USER ./dotfiles/zsh/zshrc                     $IDE_HOME/.zshrc
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/editorconfig/editorconfig    $IDE_HOME/.editorconfig
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/git/gitconfig                $IDE_HOME/.gitconfig
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/git/gitignore                $IDE_HOME/.gitignore
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/host/bin/ide                 $IDE_HOME/.dotfiles/host/bin/ide
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/prettier/prettierrc.js       $IDE_HOME/.prettierrc.js
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/ruby/rubocop.yml             $IDE_HOME/.rubocop.yml
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/ruby/solargraph.yml          $IDE_HOME/.solargraph.yml
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/tmux/gitmux.conf             $IDE_HOME/.gitmux.conf
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/usql/usqlrc                  $IDE_HOME/.usqlrc
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/zsh                          $IDE_HOME/.zsh
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/zsh/starship.toml            $IDE_HOME/.starship.toml
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/zsh/zshenv                   $IDE_HOME/.zshenv
