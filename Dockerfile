@@ -256,9 +256,11 @@ RUN \
       $IDE_HOME/.claude \
       $IDE_HOME/.ssh \
       $IDE_HOME/bundle \
+      $IDE_HOME/code \
       && \
     doas chown -R ide:ide \
       $IDE_HOME/bundle \
+      $IDE_HOME/code \
       $IDE_HOME/.cache \
       $IDE_HOME/.claude \
       $IDE_HOME/.config \

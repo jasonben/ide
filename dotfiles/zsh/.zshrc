@@ -12,8 +12,8 @@ _has() {
   return $( whence $1 >/dev/null )
 }
 
-if _has fzf && _has ag; then
-  export FZF_DEFAULT_COMMAND='ag --nocolor -g ""'
+if _has fzf && _has rg; then
+  export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
   export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
   export FZF_ALT_C_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
@@ -24,6 +24,7 @@ eval "$(atuin init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(mise activate zsh)"
 
+# broot --set-install-state installed
 function br {
     local cmd cmd_file code
     cmd_file=$(mktemp)

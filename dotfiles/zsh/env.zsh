@@ -1,4 +1,4 @@
-export EDITOR='vim'
+export EDITOR='nvim'
 export UPDATE_ZSH_DAYS=7
 export HOMEBREW_NO_GITHUB_API="false"
 export STARSHIP_CONFIG=/jasonben/ide/.starship.toml
