@@ -1,4 +1,4 @@
-ARG ALPINE_VERSION=3.23.4
+ARG ALPINE_VERSION=3.24.2
 FROM jasonben/go-apps AS go-apps
 FROM jasonben/rust-apps AS rust-apps
 FROM alpine:${ALPINE_VERSION} AS ide-base-image
