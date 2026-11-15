@@ -176,31 +176,47 @@ RUN \
     /usr/bin/tic -x tmux-256color.src && \
   chown -R "$IDE_USER:$IDE_USER" $IDE_HOME
 
+COPY --chmod=755 ./scripts/clone-at /usr/local/bin/clone-at
+
 USER $IDE_USER
 WORKDIR $IDE_HOME
 
+# Pinned refs: tags where upstream publishes them, commit SHAs otherwise.
+ARG OHMYZSH_REF=6010fb6260f359e71d99ba25f05f9215809b3ed2
+ARG ZSH_AUTOSUGGESTIONS_REF=v0.7.1
+ARG ZSH_SYNTAX_HIGHLIGHTING_REF=0.8.0
+ARG ZSH_FZF_HISTORY_SEARCH_REF=35df458f7d9478fa88c74af762dcd296cdfd485d
+ARG BASE16_SHELL_REF=497c34eacade613cd28fa51e98440d336dcc1f80
+ARG HAS_REF=v1.6.0
+# Update both hashes with DUCKDB_VERSION (sha256 of duckdb_cli-linux-<arch>-musl.gz)
+ARG DUCKDB_SHA256_AMD64=fe6dcb7c259ee8f6ecc0fd72ed0f9ce26d5539cc8d1e141c0b95e2168fd0ff16
+ARG DUCKDB_SHA256_ARM64=1a587a0a8b4d8b9886facccc027a003d9bad1e5236e168fb0f6d39886eb4db63
+
+# hadolint ignore=DL4006
 RUN \
   echo "Zsh: Installing ohmyzsh" && \
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" \
+    clone-at https://github.com/ohmyzsh/ohmyzsh.git "$OHMYZSH_REF" \
+      "$IDE_HOME/.oh-my-zsh" \
     && \
   echo "Zsh: Installing auto suggestions" && \
-    git clone --depth=1 https://github.com/zsh-users/zsh-autosuggestions.git \
-      $IDE_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions \
+    clone-at https://github.com/zsh-users/zsh-autosuggestions.git "$ZSH_AUTOSUGGESTIONS_REF" \
+      "$IDE_HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" \
     && \
   echo "Zsh: Installing syntax highlighting" && \
-    git clone --depth=1 https://github.com/zsh-users/zsh-syntax-highlighting.git \
-      $IDE_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting \
+    clone-at https://github.com/zsh-users/zsh-syntax-highlighting.git "$ZSH_SYNTAX_HIGHLIGHTING_REF" \
+      "$IDE_HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" \
     && \
   echo "Zsh: Installing zsh-fzf-history-search" && \
-    git clone --depth=1 https://github.com/joshskidmore/zsh-fzf-history-search.git \
-      $IDE_HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search \
+    clone-at https://github.com/joshskidmore/zsh-fzf-history-search.git "$ZSH_FZF_HISTORY_SEARCH_REF" \
+      "$IDE_HOME/.oh-my-zsh/custom/plugins/zsh-fzf-history-search" \
     && \
   echo "Zsh: Installing base16-shell" && \
-    git clone --depth=1 https://github.com/base16-project/base16-shell.git \
-      $IDE_HOME/.base16-shell \
+    clone-at https://github.com/base16-project/base16-shell.git "$BASE16_SHELL_REF" \
+      "$IDE_HOME/.base16-shell" \
     && \
   echo "Random: Install has command" && \
-    git clone --depth=1 https://github.com/kdabir/has.git && cd has && doas make install && cd .. && rm -rf has \
+    clone-at https://github.com/kdabir/has.git "$HAS_REF" /tmp/has && \
+    doas make -C /tmp/has install \
     && \
   echo "Python: Installing" && \
     { if [ "$(uname -m)" = "x86_64" ]; then \
@@ -229,15 +245,16 @@ RUN \
       "$IDE_HOME/.tmux/plugins/catppuccin/tmux" \
     && \
   echo "Duckdb: Installing" && \
-    { if [ "$(uname -m)" = "x86_64" ]; then \
-        curl -fsSL https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb_cli-linux-amd64-musl.gz -o /tmp/duckdb.gz && \
-        gunzip /tmp/duckdb.gz && \
-        doas mv /tmp/duckdb /usr/local/bin/duckdb; \
-      else \
-        curl -fsSL https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb_cli-linux-arm64-musl.gz -o /tmp/duckdb.gz && \
-        gunzip /tmp/duckdb.gz && \
-        doas mv /tmp/duckdb /usr/local/bin/duckdb; \
-      fi; } && doas chmod +x /usr/local/bin/duckdb \
+    if [ "$(uname -m)" = "x86_64" ]; then \
+      duckdb_arch=amd64 duckdb_sha256="$DUCKDB_SHA256_AMD64"; \
+    else \
+      duckdb_arch=arm64 duckdb_sha256="$DUCKDB_SHA256_ARM64"; \
+    fi && \
+    curl -fsSL -o /tmp/duckdb.gz \
+      "https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb_cli-linux-$duckdb_arch-musl.gz" && \
+    echo "$duckdb_sha256  /tmp/duckdb.gz" | sha256sum -c - && \
+    gunzip /tmp/duckdb.gz && \
+    doas install -m 755 /tmp/duckdb /usr/local/bin/duckdb \
     && \
   echo "Cleaning up" && \
     mise exec go@$GO_VERSION -- go clean -cache && \
@@ -271,6 +288,9 @@ COPY --from=rust-apps --chown=$IDE_USER:$IDE_USER $IDE_HOME/rust $IDE_HOME/rust
 
 FROM ide-base-image AS ide
 
+ARG TPM_REF=v3.1.0
+ARG VIM_PLUG_REF=0.15.0
+
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/mise $IDE_HOME/.mise
 
 RUN \
@@ -285,12 +305,12 @@ COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/tmux/tmux.conf    $IDE_HOME/.tmux.co
 RUN \
   echo "Tmux: Installing tmux plugins" && \
     mkdir -p "$IDE_HOME/.tmux/plugins" && \
-    git clone --depth=1 https://github.com/tmux-plugins/tpm "$IDE_HOME/.tmux/plugins/tpm" && \
+    clone-at https://github.com/tmux-plugins/tpm.git "$TPM_REF" "$IDE_HOME/.tmux/plugins/tpm" && \
     "$IDE_HOME/.tmux/plugins/tpm/bin/install_plugins" \
     && \
   echo "Neovim: Installing vim-plug" && \
     curl -fLo "$IDE_HOME/.local/share/nvim/site/autoload/plug.vim" \
-      --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
+      --create-dirs "https://raw.githubusercontent.com/junegunn/vim-plug/$VIM_PLUG_REF/plug.vim" \
     && \
   echo "Neovim: pynvim fix.. reinstall greenlet" && \
     CC=clang mise exec python@$PYTHON_VERSION -- python -m \

@@ -24,7 +24,7 @@ if vim.fn.empty(vim.fn.glob(plugin_manager_path)) == 1 then
     "-fLo",
     plugin_manager_path,
     "--create-dirs",
-    "https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim",
+    "https://raw.githubusercontent.com/junegunn/vim-plug/0.15.0/plug.vim",
   })
 end
 

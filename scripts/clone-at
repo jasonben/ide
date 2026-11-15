@@ -1,0 +1,18 @@
+#!/bin/sh
+# Shallow-clone a git repo at an exact tag or commit SHA.
+# usage: clone-at <url> <tag-or-sha> <dir>
+set -eu
+
+if [ "$#" -ne 3 ]; then
+  echo "usage: clone-at <url> <tag-or-sha> <dir>" >&2
+  exit 64
+fi
+
+url=$1
+ref=$2
+dir=$3
+
+git init -q "$dir"
+git -C "$dir" remote add origin "$url"
+git -C "$dir" fetch -q --depth=1 origin "$ref"
+git -C "$dir" -c advice.detachedHead=false checkout -q FETCH_HEAD
