@@ -2,17 +2,6 @@ organize() {
   docker run -it --rm -v $(pwd):$(pwd) -w $(pwd) jasonben/organize organize-rt --output="${2:-organized_rt}" --source="$1"
 }
 
-syncthing() {
-  share="$HOME/Downloads/share"
-  docker run --rm -d -p 8384:8384 -p 22000:22000 \
-      -v $share:/var/syncthing/files \
-      -v $share/syncthing:/var/syncthing \
-      syncthing/syncthing:latest
-  firefox "http://0.0.0.0:8384"
-  echo "syncthing gui: 0.0.0.0:8384"
-  echo "sharing $share/files"
-}
-
 dive () {
   if [[ -n "$DOCKER_HOST" ]]; then
     # inside the ide container: reach the docker-sock proxy over its network
@@ -22,10 +11,6 @@ dive () {
     docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock \
         wagoodman/dive:latest "$1"
   fi
-}
-
-bs () {
-  browser-sync start --proxy $1 --files "app/assets/stylesheets/**/*.scss, app/views/**/*.html.slim"
 }
 
 mkstylelint() {
