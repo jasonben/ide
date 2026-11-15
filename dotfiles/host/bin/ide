@@ -21,9 +21,8 @@ ide () {
     -v jasonben_ide_claude:/jasonben/ide/.claude \
     -v jasonben_ide_config:/jasonben/ide/.config \
     -v jasonben_ide_local:/jasonben/ide/.local \
-    -v jasonben_ide_nvim:/jasonben/ide/.nvim \
     -v jasonben_ide_ssh:/jasonben/ide/.ssh \
-    -v jasonben_ide_tailscale:/var/lib \
+    -v jasonben_ide_tailscale:/var/lib/tailscale \
     -v jasonben_ide_tmuxinator:/jasonben/ide/.tmuxinator \
     -v /dev/net/tun:/dev/net/tun \
     "$ide_docker_image" \
@@ -54,7 +53,6 @@ docker_socket() {
 
 ensure_volumes() {
   local volumes=(
-    jasonben_ide_nvim
     jasonben_ide_ssh
     jasonben_ide_code
     jasonben_ide_claude
