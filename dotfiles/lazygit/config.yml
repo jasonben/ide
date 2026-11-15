@@ -1,3 +1,8 @@
 disableStartupPopups: true
 os:
-  openCommand: 'sh -c "nvim {{filename}} >/dev/null"'
+  edit: 'nvim -u ~/.nvim/init.lua -- {{filename}}'
+  editAtLine: 'nvim -u ~/.nvim/init.lua +{{line}} -- {{filename}}'
+  editAtLineAndWait: 'nvim -u ~/.nvim/init.lua +{{line}} -- {{filename}}'
+  openDirInEditor: 'nvim -u ~/.nvim/init.lua -- {{dir}}'
+  editInTerminal: true
+
