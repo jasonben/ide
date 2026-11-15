@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+# Bump the pinned dependency refs in the Dockerfile to their latest upstream
+# versions. Reads the same "# renovate: ..." annotations Renovate uses, so the
+# two never drift apart. Also bumps DuckDB (version + sha256s), which Renovate
+# can't, and keeps the vim-plug URL in dotfiles/nvim/init.lua in step.
+#
+# usage: scripts/bump-refs [-n|--dry-run] [NAME...]
+#   NAME  only bump these ARGs (e.g. TPM_REF DUCKDB_VERSION); default: all
+#
+# Needs: git, curl, jq. Set GITHUB_TOKEN to avoid GitHub API rate limits.
+set -euo pipefail
+
+root=$(cd "$(dirname "$0")/.." && pwd)
+dockerfile="$root/Dockerfile"
+init_lua="$root/dotfiles/nvim/init.lua"
+
+dry_run=false
+only=()
+for arg in "$@"; do
+  case "$arg" in
+    -n | --dry-run) dry_run=true ;;
+    -h | --help) sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*) echo "unknown option: $arg" >&2; exit 64 ;;
+    *) only+=("$arg") ;;
+  esac
+done
+
+for cmd in git curl jq; do
+  command -v "$cmd" >/dev/null || { echo "bump-refs: missing $cmd" >&2; exit 1; }
+done
+
+wanted() {
+  [ "${#only[@]}" -eq 0 ] && return 0
+  local n
+  for n in "${only[@]}"; do [ "$n" = "$1" ] && return 0; done
+  return 1
+}
+
+github_api() {
+  local auth=()
+  [ -n "${GITHUB_TOKEN:-}" ] && auth=(-H "Authorization: Bearer $GITHUB_TOKEN")
+  curl -fsSL "${auth[@]}" -H "Accept: application/vnd.github+json" "https://api.github.com/$1"
+}
+
+# Latest plain release tag (1.2.3 or v1.2.3; no pre-releases), keeping the
+# current tag's "v" prefix style.
+latest_github_tag() {
+  local repo=$1 current=$2 prefix=""
+  [[ "$current" == v* ]] && prefix="v"
+  git ls-remote --tags --refs "https://github.com/$repo.git" |
+    awk -F/ '{print $3}' |
+    grep -E "^${prefix}[0-9]+(\.[0-9]+)*$" |
+    sort -V | tail -1
+}
+
+latest_branch_sha() {
+  git ls-remote "$1" "refs/heads/$2" | cut -f1
+}
+
+latest_docker_tag() {
+  local image=$1
+  [[ "$image" == */* ]] || image="library/$image"
+  curl -fsSL "https://hub.docker.com/v2/repositories/$image/tags?page_size=100&ordering=last_updated" |
+    jq -r '.results[].name' |
+    grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' |
+    sort -V | tail -1
+}
+
+changes=0
+
+# set_arg NAME OLD NEW: report, and rewrite "ARG NAME=..." unless dry run.
+set_arg() {
+  local name=$1 old=$2 new=$3
+  if [ -z "$new" ]; then
+    printf '  %-28s %s  (lookup failed, skipped)\n' "$name" "$old"
+    return
+  fi
+  if [ "$old" = "$new" ]; then
+    printf '  %-28s %s  (up to date)\n' "$name" "$old"
+    return
+  fi
+  printf '* %-28s %s -> %s\n' "$name" "$old" "$new"
+  changes=$((changes + 1))
+  $dry_run || sed -i "s|^ARG $name=.*|ARG $name=$new|" "$dockerfile"
+}
+
+current_arg() {
+  sed -n "s/^ARG $1=//p" "$dockerfile"
+}
+
+echo "Checking annotated refs in Dockerfile..."
+annotation=""
+while IFS= read -r line; do
+  if [[ "$line" == "# renovate: "* ]]; then
+    annotation=${line#"# renovate: "}
+    continue
+  fi
+  if [[ -n "$annotation" && "$line" =~ ^ARG\ ([A-Za-z0-9_]+)=(.*)$ ]]; then
+    name=${BASH_REMATCH[1]}
+    old=${BASH_REMATCH[2]}
+    datasource="" dep="" branch=""
+    for kv in $annotation; do
+      case "$kv" in
+        datasource=*) datasource=${kv#*=} ;;
+        depName=*) dep=${kv#*=} ;;
+        branch=*) branch=${kv#*=} ;;
+      esac
+    done
+    if wanted "$name"; then
+      case "$datasource" in
+        github-tags) new=$(latest_github_tag "$dep" "$old" || true) ;;
+        git-refs) new=$(latest_branch_sha "$dep" "$branch" || true) ;;
+        docker) new=$(latest_docker_tag "$dep" || true) ;;
+        *) echo "  $name: unsupported datasource '$datasource', skipped"; new=$old ;;
+      esac
+      set_arg "$name" "$old" "$new"
+    fi
+  fi
+  annotation=""
+done <"$dockerfile"
+
+# DuckDB: version and per-arch sha256 must move together.
+if wanted DUCKDB_VERSION; then
+  echo "Checking DuckDB..."
+  old=$(current_arg DUCKDB_VERSION)
+  release=$(github_api repos/duckdb/duckdb/releases/latest || true)
+  new=$(jq -r '.tag_name // empty' <<<"$release" | sed 's/^v//')
+  if [ -n "$new" ] && [ "$new" != "$old" ]; then
+    sha() {
+      jq -r --arg n "duckdb_cli-linux-$1-musl.gz" \
+        '.assets[] | select(.name == $n) | .digest // empty' <<<"$release" | sed 's/^sha256://'
+    }
+    amd64=$(sha amd64)
+    arm64=$(sha arm64)
+    if [ -z "$amd64" ] || [ -z "$arm64" ]; then
+      printf '  %-28s %s  (%s has no duckdb_cli-linux-<arch>-musl.gz assets;\n' DUCKDB_VERSION "$old" "$new"
+      printf '  %-28s %s   asset naming changed, update the Dockerfile download step by hand)\n' "" "${old//?/ }"
+    else
+      set_arg DUCKDB_VERSION "$old" "$new"
+      set_arg DUCKDB_SHA256_AMD64 "$(current_arg DUCKDB_SHA256_AMD64)" "$amd64"
+      set_arg DUCKDB_SHA256_ARM64 "$(current_arg DUCKDB_SHA256_ARM64)" "$arm64"
+    fi
+  else
+    set_arg DUCKDB_VERSION "$old" "$new"
+  fi
+fi
+
+# Keep init.lua's vim-plug auto-install URL on the Dockerfile's version.
+vim_plug=$(current_arg VIM_PLUG_REF)
+if ! grep -q "junegunn/vim-plug/$vim_plug/plug.vim" "$init_lua"; then
+  echo "* init.lua vim-plug URL -> $vim_plug"
+  changes=$((changes + 1))
+  $dry_run || sed -i "s|junegunn/vim-plug/[^/]*/plug.vim|junegunn/vim-plug/$vim_plug/plug.vim|" "$init_lua"
+fi
+
+echo
+if [ "$changes" -eq 0 ]; then
+  echo "Everything is up to date."
+elif $dry_run; then
+  echo "$changes update(s) available. Re-run without --dry-run to apply."
+else
+  echo "$changes update(s) applied. Review with: git diff -- Dockerfile dotfiles/nvim/init.lua"
+fi
