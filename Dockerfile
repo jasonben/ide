@@ -336,6 +336,7 @@ COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/editorconfig/editorconfig    $IDE_HO
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/git/gitconfig                $IDE_HOME/.gitconfig
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/git/gitignore                $IDE_HOME/.gitignore
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/host/bin/ide                 $IDE_HOME/.dotfiles/host/bin/ide
+COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/bin                          $IDE_HOME/.dotfiles/bin
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/prettier/prettierrc.js       $IDE_HOME/.prettierrc.js
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/ruby/rubocop.yml             $IDE_HOME/.rubocop.yml
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/ruby/solargraph.yml          $IDE_HOME/.solargraph.yml
