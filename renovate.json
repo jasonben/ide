@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "customManagers": [
+    {
+      "description": "Tag/version pins annotated with '# renovate:' above an ARG",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>github-tags|docker) depName=(?<depName>\\S+)\\s+ARG \\w+=(?<currentValue>\\S+)"
+      ]
+    },
+    {
+      "description": "Commit-SHA pins that track a branch",
+      "customType": "regex",
+      "managerFilePatterns": ["/(^|/)Dockerfile$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>git-refs) depName=(?<depName>\\S+) branch=(?<currentValue>\\S+)\\s+ARG \\w+=(?<currentDigest>[0-9a-f]{40})"
+      ]
+    },
+    {
+      "description": "vim-plug auto-install URL in init.lua, kept in step with VIM_PLUG_REF",
+      "customType": "regex",
+      "managerFilePatterns": ["/^dotfiles/nvim/init\\.lua$/"],
+      "matchStrings": [
+        "raw\\.githubusercontent\\.com/junegunn/vim-plug/(?<currentValue>[^/]+)/plug\\.vim"
+      ],
+      "datasourceTemplate": "github-tags",
+      "depNameTemplate": "junegunn/vim-plug"
+    }
+  ],
+  "packageRules": [
+    {
+      "description": "Update vim-plug in the Dockerfile and init.lua in one PR",
+      "matchDepNames": ["junegunn/vim-plug"],
+      "groupName": "vim-plug"
+    },
+    {
+      "description": "Our own images are built as :latest elsewhere",
+      "matchDatasources": ["docker"],
+      "matchDepNames": ["jasonben/go-apps", "jasonben/rust-apps"],
+      "enabled": false
+    }
+  ]
+}

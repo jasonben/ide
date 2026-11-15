@@ -1,3 +1,4 @@
+# renovate: datasource=docker depName=alpine
 ARG ALPINE_VERSION=3.24.4
 FROM jasonben/go-apps AS go-apps
 FROM jasonben/rust-apps AS rust-apps
@@ -12,7 +13,6 @@ ENV \
   NODE_VERSION=24.5.0 \
   PYTHON_VERSION=3.14.0 \
   RUBY_VERSION=4.0.5 \
-  DUCKDB_VERSION=1.5.3 \
   HOME=$IDE_HOME \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
@@ -181,13 +181,24 @@ USER $IDE_USER
 WORKDIR $IDE_HOME
 
 # Pinned refs: tags where upstream publishes them, commit SHAs otherwise.
+# The "# renovate:" comments drive both Renovate and scripts/bump-refs.
+# renovate: datasource=git-refs depName=https://github.com/ohmyzsh/ohmyzsh branch=master
 ARG OHMYZSH_REF=6010fb6260f359e71d99ba25f05f9215809b3ed2
+# renovate: datasource=github-tags depName=zsh-users/zsh-autosuggestions
 ARG ZSH_AUTOSUGGESTIONS_REF=v0.7.1
+# renovate: datasource=github-tags depName=zsh-users/zsh-syntax-highlighting
 ARG ZSH_SYNTAX_HIGHLIGHTING_REF=0.8.0
+# renovate: datasource=git-refs depName=https://github.com/joshskidmore/zsh-fzf-history-search branch=master
 ARG ZSH_FZF_HISTORY_SEARCH_REF=35df458f7d9478fa88c74af762dcd296cdfd485d
+# renovate: datasource=git-refs depName=https://github.com/base16-project/base16-shell branch=main
 ARG BASE16_SHELL_REF=497c34eacade613cd28fa51e98440d336dcc1f80
+# renovate: datasource=github-tags depName=kdabir/has
 ARG HAS_REF=v1.6.0
-# Update both hashes with DUCKDB_VERSION (sha256 of duckdb_cli-linux-<arch>-musl.gz)
+# renovate: datasource=github-tags depName=catppuccin/tmux
+ARG CATPPUCCIN_TMUX_REF=v2.1.3
+# DuckDB is bumped by scripts/bump-refs only: the hashes must change with the
+# version (sha256 of duckdb_cli-linux-<arch>-musl.gz), which Renovate can't do.
+ARG DUCKDB_VERSION=1.5.3
 ARG DUCKDB_SHA256_AMD64=fe6dcb7c259ee8f6ecc0fd72ed0f9ce26d5539cc8d1e141c0b95e2168fd0ff16
 ARG DUCKDB_SHA256_ARM64=1a587a0a8b4d8b9886facccc027a003d9bad1e5236e168fb0f6d39886eb4db63
 
@@ -240,7 +251,7 @@ RUN \
     mise use --global go@$GO_VERSION && \
   echo "Tmux: Installing catppuccin" && \
     mkdir -p "$IDE_HOME/.tmux/plugins/catppuccin" && \
-    git clone --depth=1 -b v2.1.3 https://github.com/catppuccin/tmux.git \
+    clone-at https://github.com/catppuccin/tmux.git "$CATPPUCCIN_TMUX_REF" \
       "$IDE_HOME/.tmux/plugins/catppuccin/tmux" \
     && \
   echo "Duckdb: Installing" && \
@@ -287,7 +298,9 @@ COPY --from=rust-apps --chown=$IDE_USER:$IDE_USER $IDE_HOME/rust $IDE_HOME/rust
 
 FROM ide-base-image AS ide
 
+# renovate: datasource=github-tags depName=tmux-plugins/tpm
 ARG TPM_REF=v3.1.0
+# renovate: datasource=github-tags depName=junegunn/vim-plug
 ARG VIM_PLUG_REF=0.15.0
 
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/mise $IDE_HOME/.mise
