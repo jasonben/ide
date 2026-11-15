@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+set -e
+
 
 rm /etc/ssh/ssh_host_*
 
