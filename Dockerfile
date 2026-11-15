@@ -321,13 +321,13 @@ COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/mise $IDE_HOME/.mise
 # not shrink this one.
 RUN \
   echo "Mise: Installing default packages" && \
-    cat "$IDE_HOME/.mise/default-node-packages"   | xargs mise exec node@$NODE_VERSION     -- npm install -g && \
-    cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install --no-cache-dir && \
-    cat "$IDE_HOME/.mise/default-ruby-gems"       | xargs mise exec ruby@$RUBY_VERSION     -- gem install && \
+    xargs mise exec "node@$NODE_VERSION"     -- npm install -g < "$IDE_HOME/.mise/default-node-packages" && \
+    xargs mise exec "python@$PYTHON_VERSION" -- python -m pip install --no-cache-dir < "$IDE_HOME/.mise/default-python-packages" && \
+    xargs mise exec "ruby@$RUBY_VERSION"     -- gem install < "$IDE_HOME/.mise/default-ruby-gems" && \
   echo "Mise: Removing old gem versions and package caches" && \
-    mise exec ruby@$RUBY_VERSION -- gem cleanup && \
-    mise exec node@$NODE_VERSION -- npm cache clean --force && \
-    rm -rf "$(mise exec ruby@$RUBY_VERSION -- gem env gemdir)/cache" \
+    mise exec "ruby@$RUBY_VERSION" -- gem cleanup && \
+    mise exec "node@$NODE_VERSION" -- npm cache clean --force && \
+    rm -rf "$(mise exec "ruby@$RUBY_VERSION" -- gem env gemdir)/cache" \
       "$IDE_HOME/.npm" "$IDE_HOME/.cache" "$MISE_CACHE_DIR"
 
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/nvim/             $IDE_HOME/.nvim
@@ -344,15 +344,15 @@ RUN \
       --create-dirs "https://raw.githubusercontent.com/junegunn/vim-plug/$VIM_PLUG_REF/plug.vim" \
     && \
   echo "Neovim: pynvim fix.. reinstall greenlet" && \
-    CC=gcc CXX=g++ mise exec python@$PYTHON_VERSION -- python -m \
+    CC=gcc CXX=g++ mise exec "python@$PYTHON_VERSION" -- python -m \
       pip install --no-cache-dir --no-binary=greenlet --force-reinstall greenlet \
     && \
   echo "Neovim: Coc install..." && \
-    cd $IDE_HOME/.nvim/coc/extensions && mise exec node@$NODE_VERSION -- npm install && \
+    mise exec "node@$NODE_VERSION" -- npm install --prefix "$IDE_HOME/.nvim/coc/extensions" && \
   echo "Neovim: Plug install..." && \
-    nvim -es -u $IDE_HOME/.nvim/init.lua -i NONE -c "PlugInstall" -c "qa" && \
+    nvim -es -u "$IDE_HOME/.nvim/init.lua" -i NONE -c "PlugInstall" -c "qa" && \
   echo "Cleaning up" && \
-    mise exec go@$GO_VERSION -- go clean -cache && \
+    mise exec "go@$GO_VERSION" -- go clean -cache && \
     doas rm -rf /tmp/* && \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
