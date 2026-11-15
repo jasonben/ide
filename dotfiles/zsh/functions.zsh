@@ -1,5 +1,5 @@
 organize() {
-  docker run -it --rm -v $(pwd):$(pwd) -w $(pwd) jasonben/organize organize-rt --output={$2:-organized_rt} --source=$1
+  docker run -it --rm -v $(pwd):$(pwd) -w $(pwd) jasonben/organize organize-rt --output="${2:-organized_rt}" --source="$1"
 }
 
 syncthing() {
@@ -14,10 +14,14 @@ syncthing() {
 }
 
 dive () {
-  docker run --rm -it \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v $(which docker):/bin/docker \
-      wagoodman/dive:latest $1
+  if [[ -n "$DOCKER_HOST" ]]; then
+    # inside the ide container: reach the docker-sock proxy over its network
+    docker run --rm -it --network dockersock -e DOCKER_HOST="$DOCKER_HOST" \
+        wagoodman/dive:latest "$1"
+  else
+    docker run --rm -it -v /var/run/docker.sock:/var/run/docker.sock \
+        wagoodman/dive:latest "$1"
+  fi
 }
 
 bs () {
@@ -43,15 +47,15 @@ fqdninfo() {
 }
 
 whoport() {
-  sudo lsof -iTCP -sTCP:LISTEN -n -P | grep ":$1"
+  doas netstat -tlnp | grep ":$1 "
 }
 
 ctags_rails() {
-  ctags -R .ide/ctags $(bundle list --paths)
+  mkdir -p .ide && ctags -R -f .ide/ctags . $(bundle list --paths)
 }
 
 rm_rec() {
-  find . -name "$1" -print0 | xargs -0 rm -Rf –
+  find . -name "$1" -prune -exec rm -rf -- {} +
 }
 
 # db, table
