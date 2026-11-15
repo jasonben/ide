@@ -56,6 +56,18 @@ sudo systemctl start docker
 brew install --cask docker-desktop
 ```
 
+# Build locally
+
+```sh
+rake build        # build jasonben/ide, reusing CI's layer cache
+rake smoke        # check the core tools run inside the image
+rake lint         # hadolint + shellcheck, as CI runs them
+rake -T           # all tasks (build:fresh, build:arm64, clean)
+scripts/bump-refs --dry-run   # list pinned dependencies with newer versions
+```
+
+Settings can go in an optional `.env`; see [.env.sample](./.env.sample).
+
 # Documentation
 
 [docs](./docs)
