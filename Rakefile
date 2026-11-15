@@ -89,6 +89,7 @@ SMOKE_CHECKS = {
   "ruby" => "ruby --version",
   "node" => "node --version",
   "python" => "python --version",
+  "pynvim" => "python -c 'import greenlet, pynvim; print(\"greenlet\", greenlet.__version__)'",
   "go" => "go version",
 }.freeze
 

@@ -50,7 +50,6 @@ RUN \
     binutils-gold \
     build-base \
     ca-certificates \
-    clang \
     coreutils \
     ffmpeg \
     file \
@@ -72,7 +71,7 @@ RUN \
     libxslt-dev \
     linux-headers \
     make \
-    mariadb-dev \
+    mariadb-connector-c-dev \
     musl-dev \
     nasm \
     ncurses \
@@ -81,7 +80,7 @@ RUN \
     pkgconf \
     poppler \
     postgresql-client \
-    postgresql-dev \
+    libpq-dev \
     pspg \
     ruby-dev \
     shadow \
@@ -152,6 +151,7 @@ RUN \
   echo "System: installing additional apps using mise" && \
     mise use --global terraform && \
     mise use --global gcloud && \
+    rm -rf "$MISE_DATA_DIR/downloads" "$MISE_CACHE_DIR" && \
   echo "System: Done installing apps" && \
   echo "System: Configuring settings" && \
   echo "System: Changing timezone to US/Central" && \
@@ -272,7 +272,7 @@ RUN \
     doas rm -rf "$GOPATH/src" && \
     doas rm -rf "$GOPATH/pkg" && \
     doas rm -rf "$IDE_HOME/.cache" && \
-    doas rm -rf "$IDE_HOME/.mise/.cache" && \
+    doas rm -rf "$MISE_DATA_DIR/downloads" "$MISE_CACHE_DIR" && \
     doas mkdir -p \
       $IDE_HOME/.config/ide/context/personal/zsh \
       $IDE_HOME/.config/ide/context/work/zsh \
@@ -305,11 +305,18 @@ ARG VIM_PLUG_REF=0.15.0
 
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/mise $IDE_HOME/.mise
 
+# Caches are cleared in this same RUN: deleting them in a later layer would
+# not shrink this one.
 RUN \
   echo "Mise: Installing default packages" && \
     cat "$IDE_HOME/.mise/default-node-packages"   | xargs mise exec node@$NODE_VERSION     -- npm install -g && \
-    cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install && \
-    cat "$IDE_HOME/.mise/default-ruby-gems"       | xargs mise exec ruby@$RUBY_VERSION     -- gem install
+    cat "$IDE_HOME/.mise/default-python-packages" | xargs mise exec python@$PYTHON_VERSION -- python -m pip install --no-cache-dir && \
+    cat "$IDE_HOME/.mise/default-ruby-gems"       | xargs mise exec ruby@$RUBY_VERSION     -- gem install && \
+  echo "Mise: Removing old gem versions and package caches" && \
+    mise exec ruby@$RUBY_VERSION -- gem cleanup && \
+    mise exec node@$NODE_VERSION -- npm cache clean --force && \
+    rm -rf "$(mise exec ruby@$RUBY_VERSION -- gem env gemdir)/cache" \
+      "$IDE_HOME/.npm" "$IDE_HOME/.cache" "$MISE_CACHE_DIR"
 
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/nvim/             $IDE_HOME/.nvim
 COPY --chown=$IDE_USER:$IDE_USER ./dotfiles/tmux/tmux.conf    $IDE_HOME/.tmux.conf
@@ -325,8 +332,8 @@ RUN \
       --create-dirs "https://raw.githubusercontent.com/junegunn/vim-plug/$VIM_PLUG_REF/plug.vim" \
     && \
   echo "Neovim: pynvim fix.. reinstall greenlet" && \
-    CC=clang mise exec python@$PYTHON_VERSION -- python -m \
-      pip install --no-binary=greenlet --force-reinstall greenlet \
+    CC=gcc CXX=g++ mise exec python@$PYTHON_VERSION -- python -m \
+      pip install --no-cache-dir --no-binary=greenlet --force-reinstall greenlet \
     && \
   echo "Neovim: Coc install..." && \
     cd $IDE_HOME/.nvim/coc/extensions && mise exec node@$NODE_VERSION -- npm install && \
