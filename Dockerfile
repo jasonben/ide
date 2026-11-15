@@ -137,7 +137,6 @@ RUN \
     shfmt \
     starship \
     tailscale \
-    the_silver_searcher \
     tmux \
     tree \
     unzip \
