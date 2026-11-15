@@ -25,7 +25,7 @@ jobs:
           dockerfile: Dockerfile
 
       - name: ShellCheck
-        run: shellcheck dotfiles/host/bin/ide dotfiles/host/bin/*.sh scripts/clone-at scripts/bump-refs
+        run: shellcheck dotfiles/host/bin/ide dotfiles/host/bin/*.sh scripts/*
 
   buildx:
     needs: lint
