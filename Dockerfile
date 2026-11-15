@@ -122,7 +122,6 @@ RUN \
     jq \
     just \
     lazydocker \
-    lazygit \
     less \
     libqalculate \
     miller \
