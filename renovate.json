@@ -36,9 +36,9 @@
       "groupName": "vim-plug"
     },
     {
-      "description": "Our own images are built as :latest elsewhere",
+      "description": "jasonben/go-apps is still published only as :latest",
       "matchDatasources": ["docker"],
-      "matchDepNames": ["jasonben/go-apps", "jasonben/rust-apps"],
+      "matchDepNames": ["jasonben/go-apps"],
       "enabled": false
     }
   ]

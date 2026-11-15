@@ -1,7 +1,9 @@
 # renovate: datasource=docker depName=alpine
 ARG ALPINE_VERSION=3.24.4
+# renovate: datasource=docker depName=jasonben/rust-apps
+ARG RUST_APPS_VERSION=1.0.0
 FROM jasonben/go-apps AS go-apps
-FROM jasonben/rust-apps AS rust-apps
+FROM jasonben/rust-apps:${RUST_APPS_VERSION} AS rust-apps
 FROM alpine:${ALPINE_VERSION} AS ide-base-image
 
 ENV \
