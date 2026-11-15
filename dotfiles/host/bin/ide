@@ -13,8 +13,6 @@ ide () {
     --privileged \
     --network="$dockersock_network" \
     -e DOCKER_HOST="$docker_host" \
-    --cap-add=NET_ADMIN \
-    --cap-add=SYS_MODULE \
     -v jasonben_ide_bundle:/jasonben/ide/bundle \
     -v jasonben_ide_cache:/jasonben/ide/.cache \
     -v jasonben_ide_code:/jasonben/ide/code \
