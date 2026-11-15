@@ -1,4 +1,20 @@
-name: build docker image and push to docker hub
+name: build, test, push and release the ide image
+
+# The image ($IDE_DOCKER_IMAGE, the repository variable, any tag dropped, else
+# IDE_DOCKER_IMAGE in .env.sample) for amd64 and arm64.
+#
+# Each architecture builds natively on its own runner (no QEMU) into the local
+# image store and is tested there (test/smoke.sh). From main only, each is
+# then pushed by digest, reusing the tested build from the cache, and the
+# digests are merged into one multi-arch tag. Pull requests and manual runs
+# elsewhere build and test but don't push. Renovate PRs only get lint.
+#
+# The version comes from the git history (release.sh): the last v* tag, bumped
+# by the conventional commits since then (1.0.0 with no tag yet). A push to
+# main releases it when they call for a bump and v$VERSION doesn't exist yet:
+# only then is the image tagged $IMAGE:$VERSION as well as :latest (every other
+# push gives it only :latest), and the GitHub release v$VERSION is published
+# with release notes made from those commits. Neither is ever replaced.
 
 on:
   push:
@@ -7,15 +23,17 @@ on:
   pull_request:
   workflow_dispatch:
 
-# A newer run supersedes an older one for the same PR or branch, main
-# included: only the latest push to main gets built and published.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Never cancel a run on main midway through pushing or releasing.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -26,49 +44,226 @@ jobs:
           dockerfile: Dockerfile
 
       - name: ShellCheck
-        run: shellcheck dotfiles/host/bin/ide dotfiles/host/bin/*.sh scripts/*
+        run: shellcheck dotfiles/host/bin/ide dotfiles/host/bin/*.sh scripts/* release.sh test/*.sh
 
-  buildx:
-    needs: lint
+  version:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      image: ${{ steps.version.outputs.image }}
+      push: ${{ steps.version.outputs.push }}
+      release: ${{ steps.release.outputs.release }}
+    steps:
+      # The full history and tags: release.sh reads them.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Version and image
+        id: version
+        env:
+          VAR_IDE_DOCKER_IMAGE: ${{ vars.IDE_DOCKER_IMAGE }}
+          PUSH: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        run: |
+          v=$(sh release.sh version)
+          b=$(sh release.sh bump)
+          img=$VAR_IDE_DOCKER_IMAGE
+          [ -n "$img" ] || img=$(sed -n 's/^IDE_DOCKER_IMAGE=//p' .env.sample)
+          [ -n "$img" ] || { echo "IDE_DOCKER_IMAGE is not set (repository variable or .env.sample)" >&2; exit 1; }
+          # The repository, without a tag (a registry port isn't one).
+          case ${img##*/} in *:*) img=${img%:*} ;; esac
+          { echo "version=$v"; echo "bump=$b"; echo "image=$img"; echo "push=$PUSH"; } >> "$GITHUB_OUTPUT"
+          echo "ide $v (bump: $b), image $img, push: $PUSH"
+
+      # Whether this push releases: on main, a bump, and no release v$VERSION
+      # yet. Decided before the push, which tags the image with its version
+      # only when it does.
+      - name: Release?
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUMP: ${{ steps.version.outputs.bump }}
+          PUSH: ${{ steps.version.outputs.push }}
+        run: |
+          r=false
+          tag="v$VERSION"
+          if [ "$PUSH" != true ]; then
+            echo "::notice::Not a push to main: nothing is pushed or released"
+          elif [ "$BUMP" = none ]; then
+            echo "::notice::No feat, fix, perf, refactor, build, revert or breaking commits since the last release: nothing to release, the image is pushed as :latest only"
+          elif gh release view "$tag" > /dev/null 2>&1; then
+            echo "::notice::Release $tag already exists: the image is pushed as :latest only"
+          else
+            r=true
+            echo "::notice::Releasing ide $VERSION"
+          fi
+          echo "release=$r" >> "$GITHUB_OUTPUT"
+
+  # Build and test each architecture natively in parallel, then (main only)
+  # push per-platform images by digest.
+  build:
+    needs: [lint, version]
     # Renovate PRs only get lint automatically. Build one by hand with:
     #   gh workflow run ide.yml --ref renovate/<branch>
     if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'renovate/')
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            arch: amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64/v8
+            arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 300
+    permissions:
+      contents: read
     env:
-      # Layer cache on Docker Hub. CI on main writes it; PRs and local
-      # `rake build` read it (the repo is public, so no login is needed).
-      CACHE_REF: ${{ vars.IDE_CACHE_REF || 'jasonben/ide:buildcache' }}
-      # Only main publishes the image and cache. PR events never have this
-      # ref, and manual runs on other branches build without pushing.
-      PUBLISH: ${{ github.ref == 'refs/heads/main' }}
+      IMAGE: ${{ needs.version.outputs.image }}
+      PUSH: ${{ needs.version.outputs.push }}
+      # Layer cache on Docker Hub, one per architecture. Main writes it; PRs
+      # and local `rake build` read it (the repo is public, so no login is
+      # needed). GitHub's cache is too small for this image.
+      CACHE_REF: ${{ vars.IDE_CACHE_REF || 'jasonben/ide:buildcache' }}-${{ matrix.arch }}
     steps:
+      # The image is ~6 GB, and it is loaded into the local store to test it.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/local/lib/android /usr/share/dotnet /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+          df -h /
+
       - name: Checkout
         uses: actions/checkout@v7
 
-      - name: QEMU
-        uses: docker/setup-qemu-action@v4
-
       - name: Docker Buildx
-        id: buildx
         uses: docker/setup-buildx-action@v4
 
-      - name: Available build platforms
-        run: echo ${{ steps.buildx.outputs.platforms }}
-
       - name: Docker Hub login
-        if: env.PUBLISH == 'true'
+        if: env.PUSH == 'true'
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Builds both platforms everywhere; pushes only from main.
-      - name: Docker build and push
+      - name: Build
         uses: docker/build-push-action@v7
         with:
           context: .
-          platforms: linux/amd64,linux/arm64/v8
-          push: ${{ env.PUBLISH == 'true' }}
-          tags: ${{ vars.IDE_DOCKER_IMAGE }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          tags: ${{ env.IMAGE }}:test
           cache-from: type=registry,ref=${{ env.CACHE_REF }}
-          cache-to: ${{ env.PUBLISH == 'true' && format('type=registry,ref={0},mode=max', env.CACHE_REF) || '' }}
+          cache-to: ${{ env.PUSH == 'true' && format('type=registry,ref={0},mode=max', env.CACHE_REF) || '' }}
+
+      - name: Test
+        run: sh test/smoke.sh "$IMAGE:test"
+
+      # The tested build, from the builder's cache.
+      - name: Push by digest
+        id: push
+        if: env.PUSH == 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=registry,ref=${{ env.CACHE_REF }}
+
+      - name: Export digest
+        if: env.PUSH == 'true'
+        run: |
+          mkdir -p "${{ runner.temp }}/digests"
+          digest="${{ steps.push.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        if: env.PUSH == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: digests-${{ matrix.arch }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Combine the per-platform digests into a single multi-arch tag: :latest,
+  # plus :$VERSION when releasing.
+  merge:
+    needs: [version, build]
+    if: needs.version.outputs.push == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions: {}
+    env:
+      IMAGE: ${{ needs.version.outputs.image }}
+      VERSION: ${{ needs.version.outputs.version }}
+      RELEASE: ${{ needs.version.outputs.release }}
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v8
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Docker Hub login
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Create and push manifest list
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          set -- --tag "$IMAGE:latest"
+          [ "$RELEASE" != true ] || set -- "$@" --tag "$IMAGE:$VERSION"
+          docker buildx imagetools create "$@" $(printf "$IMAGE@sha256:%s " *)
+
+      - name: Inspect image
+        run: docker buildx imagetools inspect "$IMAGE:latest"
+
+  release:
+    needs: [version, merge]
+    if: needs.version.outputs.release == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      # To create the release (and its tag).
+      contents: write
+    env:
+      IMAGE: ${{ needs.version.outputs.image }}
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      # The full history and tags: release.sh reads them.
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$VERSION"
+          {
+            sh release.sh notes
+            echo
+            echo "---"
+            echo
+            echo "Image: \`$IMAGE:$VERSION\` (linux/amd64, linux/arm64)"
+          } > "$RUNNER_TEMP/notes.md"
+          cat "$RUNNER_TEMP/notes.md"
+          gh release create "$tag" \
+            --target "$GITHUB_SHA" \
+            --title "ide $VERSION" \
+            --notes-file "$RUNNER_TEMP/notes.md"

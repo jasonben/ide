@@ -68,6 +68,15 @@ scripts/bump-refs --dry-run   # list pinned dependencies with newer versions
 
 Settings can go in an optional `.env`; see [.env.sample](./.env.sample).
 
+# Releases
+
+Every push to `main` publishes `jasonben/ide:latest`. When the commits since
+the last `v*` tag include a `feat`, `fix`, `perf`, `refactor`, `build`,
+`revert` or breaking change ([Conventional Commits](https://www.conventionalcommits.org)),
+CI also tags the image with the next semver (`jasonben/ide:1.2.3`) and
+publishes a GitHub release with notes built from those commits.
+`sh release.sh version` shows the version `HEAD` would release as.
+
 # Documentation
 
 [docs](./docs)

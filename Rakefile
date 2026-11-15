@@ -3,7 +3,8 @@
 # Settings come from the environment, then .env (optional, see .env.sample):
 #   IDE_DOCKER_IMAGE  image to build and tag      (default: jasonben/ide)
 #   IDE_CACHE_REF     registry cache CI pushes to (default: jasonben/ide:buildcache)
-#                     set to "none" to build without it
+#                     CI writes one per architecture, as $IDE_CACHE_REF-amd64
+#                     and -arm64; set to "none" to build without it
 
 def load_dotenv(path = ".env")
   return unless File.exist?(path)
@@ -42,7 +43,10 @@ def buildx(*args, tag:, pull: false, platform: nil)
   cmd = %w[docker buildx build --builder default]
   cmd += ["--platform", platform] if platform
   cmd << "--pull" if pull
-  cmd += ["--cache-from", "type=registry,ref=#{CACHE_REF}"] unless CACHE_REF == "none"
+  unless CACHE_REF == "none"
+    # BuildKit only uses the one matching the target platform.
+    %w[amd64 arm64].each { |arch| cmd += ["--cache-from", "type=registry,ref=#{CACHE_REF}-#{arch}"] }
+  end
   cmd += ["-t", tag, *args, "."]
   sh(*cmd)
 end
@@ -62,7 +66,7 @@ namespace :build do
     buildx(tag: IMAGE, pull: true)
   end
 
-  desc "Build #{ARM64_IMAGE} under QEMU, as CI does for arm64 (slow)"
+  desc "Build #{ARM64_IMAGE} under QEMU (slow; CI builds arm64 natively)"
   task :arm64 do
     unless default_builder_platforms.include?("linux/arm64")
       abort <<~MSG
@@ -76,42 +80,12 @@ namespace :build do
   end
 end
 
-SMOKE_CHECKS = {
-  "nvim" => "nvim --version",
-  "tmux" => "tmux -V",
-  "git" => "git --version",
-  "lazygit" => "lazygit --version",
-  "fzf" => "fzf --version",
-  "fzf-tmux" => "command -v fzf-tmux",
-  "rg" => "rg --version",
-  "duckdb" => "duckdb --version",
-  "duckdb1" => "duckdb1 --version",
-  # 2.x needs x86-64-v3; on older x86 CPUs only duckdb1 can run
-  "duckdb2" => "if [ \"$(uname -m)\" != x86_64 ] || grep -qw avx2 /proc/cpuinfo; " \
-               "then duckdb2 --version; else echo 'skipped: CPU lacks AVX2'; fi",
-  "mise" => "mise --version",
-  "ruby" => "ruby --version",
-  "node" => "node --version",
-  "python" => "python --version",
-  "pynvim" => "python -c 'import greenlet, pynvim; print(\"greenlet\", greenlet.__version__)'",
-  "go" => "go version",
-}.freeze
-
-desc "Start #{IMAGE} and check that the core tools run"
+desc "Start #{IMAGE} and check that the core tools run, as CI does"
 task :smoke do
-  script = +"fail=0\n"
-  SMOKE_CHECKS.each do |name, check|
-    script << %(printf '%-9s ' #{name}; if out=$(#{check} 2>&1); ) +
-              %(then echo "$out" | head -1; else echo "FAILED: $out" | head -1; fail=1; fi\n)
-  end
-  script << "exit $fail\n"
-  # -i: an interactive zsh loads .zshrc (mise activate, PATH) like a real session
-  puts "Smoke testing #{IMAGE}"
-  system("docker", "run", "--rm", IMAGE, "zsh", "-ic", script) or
-    abort "Smoke test failed for #{IMAGE}"
+  sh "sh", "test/smoke.sh", IMAGE
 end
 
-SHELL_SCRIPTS = FileList["dotfiles/host/bin/ide", "dotfiles/host/bin/*.sh", "scripts/*"]
+SHELL_SCRIPTS = FileList["dotfiles/host/bin/ide", "dotfiles/host/bin/*.sh", "scripts/*", "release.sh", "test/*.sh"]
 HADOLINT_IMAGE = "hadolint/hadolint:v2.12.0-alpine"
 
 desc "Run hadolint and shellcheck, as CI does"
