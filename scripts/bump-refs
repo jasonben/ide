@@ -127,13 +127,13 @@ if wanted DUCKDB_VERSION; then
   new=$(jq -r '.tag_name // empty' <<<"$release" | sed 's/^v//')
   if [ -n "$new" ] && [ "$new" != "$old" ]; then
     sha() {
-      jq -r --arg n "duckdb_cli-linux-$1-musl.gz" \
+      jq -r --arg n "duckdb-cli-linux-$1-musl.tar.gz" \
         '.assets[] | select(.name == $n) | .digest // empty' <<<"$release" | sed 's/^sha256://'
     }
     amd64=$(sha amd64)
     arm64=$(sha arm64)
     if [ -z "$amd64" ] || [ -z "$arm64" ]; then
-      printf '  %-28s %s  (%s has no duckdb_cli-linux-<arch>-musl.gz assets;\n' DUCKDB_VERSION "$old" "$new"
+      printf '  %-28s %s  (%s has no duckdb-cli-linux-<arch>-musl.tar.gz assets;\n' DUCKDB_VERSION "$old" "$new"
       printf '  %-28s %s   asset naming changed, update the Dockerfile download step by hand)\n' "" "${old//?/ }"
     else
       set_arg DUCKDB_VERSION "$old" "$new"

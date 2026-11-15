@@ -197,10 +197,10 @@ ARG HAS_REF=v1.6.0
 # renovate: datasource=github-tags depName=catppuccin/tmux
 ARG CATPPUCCIN_TMUX_REF=v2.1.3
 # DuckDB is bumped by scripts/bump-refs only: the hashes must change with the
-# version (sha256 of duckdb_cli-linux-<arch>-musl.gz), which Renovate can't do.
-ARG DUCKDB_VERSION=1.5.3
-ARG DUCKDB_SHA256_AMD64=fe6dcb7c259ee8f6ecc0fd72ed0f9ce26d5539cc8d1e141c0b95e2168fd0ff16
-ARG DUCKDB_SHA256_ARM64=1a587a0a8b4d8b9886facccc027a003d9bad1e5236e168fb0f6d39886eb4db63
+# version (sha256 of duckdb-cli-linux-<arch>-musl.tar.gz), which Renovate can't do.
+ARG DUCKDB_VERSION=2.0.0
+ARG DUCKDB_SHA256_AMD64=3285e4083a79955b0606ab799ebc1493087307cdc76b4827308b1a4dcdb371c9
+ARG DUCKDB_SHA256_ARM64=59aee3049c335917307f5df1b3722af1335fef99199dc89e8064d1b2838620c7
 
 # hadolint ignore=DL4006
 RUN \
@@ -260,10 +260,10 @@ RUN \
     else \
       duckdb_arch=arm64 duckdb_sha256="$DUCKDB_SHA256_ARM64"; \
     fi && \
-    curl -fsSL -o /tmp/duckdb.gz \
-      "https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb_cli-linux-$duckdb_arch-musl.gz" && \
-    echo "$duckdb_sha256  /tmp/duckdb.gz" | sha256sum -c - && \
-    gunzip /tmp/duckdb.gz && \
+    curl -fsSL -o /tmp/duckdb.tar.gz \
+      "https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb-cli-linux-$duckdb_arch-musl.tar.gz" && \
+    echo "$duckdb_sha256  /tmp/duckdb.tar.gz" | sha256sum -c - && \
+    tar -xzf /tmp/duckdb.tar.gz -C /tmp duckdb && \
     doas install -m 755 /tmp/duckdb /usr/local/bin/duckdb \
     && \
   echo "Cleaning up" && \
