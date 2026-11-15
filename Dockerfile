@@ -176,6 +176,7 @@ RUN \
   chown -R "$IDE_USER:$IDE_USER" $IDE_HOME
 
 COPY --chmod=755 ./scripts/clone-at /usr/local/bin/clone-at
+COPY --chmod=755 ./scripts/duckdb-select /usr/local/bin/duckdb
 
 USER $IDE_USER
 WORKDIR $IDE_HOME
@@ -197,10 +198,16 @@ ARG HAS_REF=v1.6.0
 # renovate: datasource=github-tags depName=catppuccin/tmux
 ARG CATPPUCCIN_TMUX_REF=v2.1.3
 # DuckDB is bumped by scripts/bump-refs only: the hashes must change with the
-# version (sha256 of duckdb-cli-linux-<arch>-musl.tar.gz), which Renovate can't do.
+# version, which Renovate can't do. Two CLIs ship: 2.x needs x86-64-v3 (AVX2),
+# so 1.x stays for older x86 CPUs; /usr/local/bin/duckdb picks one at runtime.
+# duckdb2: sha256 of duckdb-cli-linux-<arch>-musl.tar.gz
 ARG DUCKDB_VERSION=2.0.0
 ARG DUCKDB_SHA256_AMD64=3285e4083a79955b0606ab799ebc1493087307cdc76b4827308b1a4dcdb371c9
 ARG DUCKDB_SHA256_ARM64=59aee3049c335917307f5df1b3722af1335fef99199dc89e8064d1b2838620c7
+# duckdb1: sha256 of duckdb_cli-linux-<arch>-musl.gz
+ARG DUCKDB1_VERSION=1.5.3
+ARG DUCKDB1_SHA256_AMD64=fe6dcb7c259ee8f6ecc0fd72ed0f9ce26d5539cc8d1e141c0b95e2168fd0ff16
+ARG DUCKDB1_SHA256_ARM64=1a587a0a8b4d8b9886facccc027a003d9bad1e5236e168fb0f6d39886eb4db63
 
 # hadolint ignore=DL4006
 RUN \
@@ -254,17 +261,22 @@ RUN \
     clone-at https://github.com/catppuccin/tmux.git "$CATPPUCCIN_TMUX_REF" \
       "$IDE_HOME/.tmux/plugins/catppuccin/tmux" \
     && \
-  echo "Duckdb: Installing" && \
+  echo "Duckdb: Installing $DUCKDB_VERSION as duckdb2, $DUCKDB1_VERSION as duckdb1" && \
     if [ "$(uname -m)" = "x86_64" ]; then \
-      duckdb_arch=amd64 duckdb_sha256="$DUCKDB_SHA256_AMD64"; \
+      duckdb_arch=amd64 duckdb_sha256="$DUCKDB_SHA256_AMD64" duckdb1_sha256="$DUCKDB1_SHA256_AMD64"; \
     else \
-      duckdb_arch=arm64 duckdb_sha256="$DUCKDB_SHA256_ARM64"; \
+      duckdb_arch=arm64 duckdb_sha256="$DUCKDB_SHA256_ARM64" duckdb1_sha256="$DUCKDB1_SHA256_ARM64"; \
     fi && \
     curl -fsSL -o /tmp/duckdb.tar.gz \
       "https://github.com/duckdb/duckdb/releases/download/v$DUCKDB_VERSION/duckdb-cli-linux-$duckdb_arch-musl.tar.gz" && \
     echo "$duckdb_sha256  /tmp/duckdb.tar.gz" | sha256sum -c - && \
     tar -xzf /tmp/duckdb.tar.gz -C /tmp duckdb && \
-    doas install -m 755 /tmp/duckdb /usr/local/bin/duckdb \
+    doas install -m 755 /tmp/duckdb /usr/local/bin/duckdb2 && \
+    curl -fsSL -o /tmp/duckdb1.gz \
+      "https://github.com/duckdb/duckdb/releases/download/v$DUCKDB1_VERSION/duckdb_cli-linux-$duckdb_arch-musl.gz" && \
+    echo "$duckdb1_sha256  /tmp/duckdb1.gz" | sha256sum -c - && \
+    gunzip /tmp/duckdb1.gz && \
+    doas install -m 755 /tmp/duckdb1 /usr/local/bin/duckdb1 \
     && \
   echo "Cleaning up" && \
     mise exec go@$GO_VERSION -- go clean -cache && \

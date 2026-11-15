@@ -85,6 +85,10 @@ SMOKE_CHECKS = {
   "fzf-tmux" => "command -v fzf-tmux",
   "rg" => "rg --version",
   "duckdb" => "duckdb --version",
+  "duckdb1" => "duckdb1 --version",
+  # 2.x needs x86-64-v3; on older x86 CPUs only duckdb1 can run
+  "duckdb2" => "if [ \"$(uname -m)\" != x86_64 ] || grep -qw avx2 /proc/cpuinfo; " \
+               "then duckdb2 --version; else echo 'skipped: CPU lacks AVX2'; fi",
   "mise" => "mise --version",
   "ruby" => "ruby --version",
   "node" => "node --version",

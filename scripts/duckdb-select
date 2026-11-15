@@ -1,0 +1,17 @@
+#!/bin/sh
+# Installed as /usr/local/bin/duckdb. DuckDB 2.x's CLI is compiled for
+# x86-64-v3 (AVX2, BMI2, FMA) and dies with "Illegal instruction" on older x86
+# CPUs, so fall back to the 1.x CLI there. Run duckdb1 or duckdb2 directly to
+# pick a version. Database files written by 2.x may not open in 1.x.
+
+if [ "$(uname -m)" = x86_64 ]; then
+  flags=$(grep -m1 '^flags' /proc/cpuinfo 2>/dev/null)
+  for f in avx2 bmi2 fma; do
+    case " $flags " in
+      *" $f "*) ;;
+      *) exec duckdb1 "$@" ;;
+    esac
+  done
+fi
+
+exec duckdb2 "$@"

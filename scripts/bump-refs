@@ -5,7 +5,7 @@
 # can't, and keeps the vim-plug URL in dotfiles/nvim/init.lua in step.
 #
 # usage: scripts/bump-refs [-n|--dry-run] [NAME...]
-#   NAME  only bump these ARGs (e.g. TPM_REF DUCKDB_VERSION); default: all
+#   NAME  only bump these ARGs (e.g. TPM_REF DUCKDB1_VERSION); default: all
 #
 # Needs: git, curl, jq. Set GITHUB_TOKEN to avoid GitHub API rate limits.
 set -euo pipefail
@@ -119,30 +119,51 @@ while IFS= read -r line; do
   annotation=""
 done <"$dockerfile"
 
-# DuckDB: version and per-arch sha256 must move together.
-if wanted DUCKDB_VERSION; then
-  echo "Checking DuckDB..."
-  old=$(current_arg DUCKDB_VERSION)
-  release=$(github_api repos/duckdb/duckdb/releases/latest || true)
-  new=$(jq -r '.tag_name // empty' <<<"$release" | sed 's/^v//')
-  if [ -n "$new" ] && [ "$new" != "$old" ]; then
-    sha() {
-      jq -r --arg n "duckdb-cli-linux-$1-musl.tar.gz" \
-        '.assets[] | select(.name == $n) | .digest // empty' <<<"$release" | sed 's/^sha256://'
-    }
-    amd64=$(sha amd64)
-    arm64=$(sha arm64)
-    if [ -z "$amd64" ] || [ -z "$arm64" ]; then
-      printf '  %-28s %s  (%s has no duckdb-cli-linux-<arch>-musl.tar.gz assets;\n' DUCKDB_VERSION "$old" "$new"
-      printf '  %-28s %s   asset naming changed, update the Dockerfile download step by hand)\n' "" "${old//?/ }"
-    else
-      set_arg DUCKDB_VERSION "$old" "$new"
-      set_arg DUCKDB_SHA256_AMD64 "$(current_arg DUCKDB_SHA256_AMD64)" "$amd64"
-      set_arg DUCKDB_SHA256_ARM64 "$(current_arg DUCKDB_SHA256_ARM64)" "$arm64"
-    fi
-  else
-    set_arg DUCKDB_VERSION "$old" "$new"
+# DuckDB: version and per-arch sha256 must move together. Two lines ship:
+# DUCKDB_* (newest release, duckdb2) and DUCKDB1_* (newest 1.x, duckdb1 for
+# CPUs without x86-64-v3). Each line keeps its own asset naming.
+duckdb_releases=""
+
+# bump_duckdb PREFIX MAJOR ASSET_TEMPLATE  (ASSET_TEMPLATE uses ARCH)
+bump_duckdb() {
+  local prefix=$1 major=$2 template=$3 old new release amd64 arm64
+  wanted "${prefix}_VERSION" || return 0
+  old=$(current_arg "${prefix}_VERSION")
+  [ -n "$old" ] || return 0
+  if [ -z "$duckdb_releases" ]; then
+    duckdb_releases=$(github_api "repos/duckdb/duckdb/releases?per_page=100" || echo '[]')
   fi
+  # Newest non-prerelease, optionally limited to one major version.
+  release=$(jq -c --arg m "$major" '
+    [.[] | select(.prerelease | not) | select(.draft | not)
+         | select($m == "" or (.tag_name | startswith("v" + $m + ".")))]
+    | sort_by(.tag_name | ltrimstr("v") | split(".") | map(tonumber? // 0))
+    | last // empty' <<<"$duckdb_releases")
+  new=$(jq -r '.tag_name // empty' <<<"$release" | sed 's/^v//')
+  if [ -z "$new" ] || [ "$new" = "$old" ]; then
+    set_arg "${prefix}_VERSION" "$old" "$new"
+    return 0
+  fi
+  sha() {
+    jq -r --arg n "${template//ARCH/$1}" \
+      '.assets[] | select(.name == $n) | .digest // empty' <<<"$release" | sed 's/^sha256://'
+  }
+  amd64=$(sha amd64)
+  arm64=$(sha arm64)
+  if [ -z "$amd64" ] || [ -z "$arm64" ]; then
+    printf '  %-28s %s  (%s has no %s assets;\n' "${prefix}_VERSION" "$old" "$new" "${template//ARCH/<arch>}"
+    printf '  %-28s %s   asset naming changed, update the Dockerfile download step by hand)\n' "" "${old//?/ }"
+    return 0
+  fi
+  set_arg "${prefix}_VERSION" "$old" "$new"
+  set_arg "${prefix}_SHA256_AMD64" "$(current_arg "${prefix}_SHA256_AMD64")" "$amd64"
+  set_arg "${prefix}_SHA256_ARM64" "$(current_arg "${prefix}_SHA256_ARM64")" "$arm64"
+}
+
+if wanted DUCKDB_VERSION || wanted DUCKDB1_VERSION; then
+  echo "Checking DuckDB..."
+  bump_duckdb DUCKDB "" "duckdb-cli-linux-ARCH-musl.tar.gz"
+  bump_duckdb DUCKDB1 1 "duckdb_cli-linux-ARCH-musl.gz"
 fi
 
 # Keep init.lua's vim-plug auto-install URL on the Dockerfile's version.
