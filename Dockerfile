@@ -164,7 +164,6 @@ RUN \
     mkdir -p $IDE_HOME && \
     adduser -D -u 1000 -G $IDE_USER -S $IDE_USER -h $IDE_HOME && \
     usermod -s /bin/zsh $IDE_USER && \
-    echo "$IDE_USER:password" | chpasswd && \
     mkdir -p /etc/doas.d && \
     echo "permit nopass $IDE_USER as root" > /etc/doas.d/doas.conf && \
     chown -c root:root /etc/doas.d/doas.conf && \
