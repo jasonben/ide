@@ -2,7 +2,7 @@ vim.g.coc_data_home = vim.env.HOME .. "/.nvim/coc"
 vim.g.coc_config_home = vim.g.coc_data_home
 
 -- Plugin configuration with vim-plug
-local plugin_manager_path = vim.env.HOME .. "./local/share/nvim/site/autoload/plug.vim"
+local plugin_manager_path = vim.env.HOME .. "/.local/share/nvim/site/autoload/plug.vim"
 local plugins_path = vim.env.HOME .. '/.nvim/plugins'
 
 -- Set shell
