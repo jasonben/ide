@@ -1,15 +1,8 @@
-export PATH="/bin:$PATH"
-export PATH="/opt/X11/bin:$PATH"
-export PATH="/sbin:$PATH"
-export PATH="/usr/bin:$PATH"
-export PATH="/usr/sbin:$PATH"
-export PATH="/usr/local/bin:$PATH"
-export PATH="/usr/local/sbin:$PATH"
-export PATH="/usr/local/bundle/bin:$PATH"
+# System dirs (/usr/local/bin, /usr/bin, /bin, ...) come from the image's
+# default PATH; only user-level dirs are prepended here.
 export PATH="$HOME/go/bin:$PATH"
 export PATH="$HOME/rust/bin:$PATH"
-export PATH="$HOME/yarn/bin:$PATH"
-export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="$HOME/.dotfiles/bin:$PATH"
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$PNPM_HOME:$PATH"
+typeset -U path # drop duplicate entries
