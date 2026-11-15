@@ -1,4 +1,3 @@
 failure-threshold: error
 ignored:
-  - DL3006 # jasonben/go-apps is our own image, published only as :latest
   - DL3018 # apk packages track the pinned ALPINE_VERSION
