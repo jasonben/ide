@@ -64,7 +64,7 @@ brew install --cask docker-desktop
 
 ```sh
 # on macOS install tmux-256 color term info file so things work as expected
-/opt/homebrew/Cellar/ncurses/6.3/bin/infocmp -x tmux-256color > tmux-256color.src
+"$(brew --prefix ncurses)/bin/infocmp" -x tmux-256color > tmux-256color.src
 sudo /usr/bin/tic -x tmux-256color.src
 
 # install brew
