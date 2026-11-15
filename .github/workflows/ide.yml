@@ -29,11 +29,17 @@ jobs:
 
   buildx:
     needs: lint
+    # Renovate PRs only get lint automatically. Build one by hand with:
+    #   gh workflow run ide.yml --ref renovate/<branch>
+    if: github.event_name != 'pull_request' || !startsWith(github.head_ref, 'renovate/')
     runs-on: ubuntu-latest
     env:
       # Layer cache on Docker Hub. CI on main writes it; PRs and local
       # `rake build` read it (the repo is public, so no login is needed).
       CACHE_REF: ${{ vars.IDE_CACHE_REF || 'jasonben/ide:buildcache' }}
+      # Only main publishes the image and cache. PR events never have this
+      # ref, and manual runs on other branches build without pushing.
+      PUBLISH: ${{ github.ref == 'refs/heads/main' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -49,19 +55,19 @@ jobs:
         run: echo ${{ steps.buildx.outputs.platforms }}
 
       - name: Docker Hub login
-        if: github.event_name != 'pull_request'
+        if: env.PUBLISH == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # PRs (including Renovate's) build both platforms but never push.
+      # Builds both platforms everywhere; pushes only from main.
       - name: Docker build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           platforms: linux/amd64,linux/arm64/v8
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ env.PUBLISH == 'true' }}
           tags: ${{ vars.IDE_DOCKER_IMAGE }}
           cache-from: type=registry,ref=${{ env.CACHE_REF }}
-          cache-to: ${{ github.event_name != 'pull_request' && format('type=registry,ref={0},mode=max', env.CACHE_REF) || '' }}
+          cache-to: ${{ env.PUBLISH == 'true' && format('type=registry,ref={0},mode=max', env.CACHE_REF) || '' }}
