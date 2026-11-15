@@ -18,7 +18,7 @@ if _has fzf && _has rg; then
   export FZF_ALT_C_COMMAND="$FZF_DEFAULT_COMMAND"
 fi
 
-bindkey -s '^[t' 'file=$(fzf-tmux --exit-0); [[ ! -z "$file" ]] && vim "$file"\n'
+bindkey -s '^[t' 'file=$(fzf-tmux --exit-0); [[ ! -z "$file" ]] && nvim "$file"\n'
 
 eval "$(atuin init zsh)"
 eval "$(zoxide init zsh)"
