@@ -28,6 +28,10 @@
   ui = auto
 [merge]
   conflictstyle = zdiff3
+[pull]
+  rebase = true
+[rebase]
+  autoStash = true
 [diff]
   colorMoved = default
 [difftool]
