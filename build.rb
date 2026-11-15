@@ -10,15 +10,15 @@ module Docker
     end
 
     def load_env
-      if File.exist?(".env")
-        File.readlines(".env").each do |line|
-          next if line.strip.empty? || line.start_with?("#")
-          key, value = line.split("=", 2).map(&:strip)
-          ENV[key] = value
-        end
-      else
-        puts "Error: .env file not found."
+      unless File.exist?(".env")
+        puts "Error: .env file not found. Fix by copying .env.sample to .env"
         exit 1
+      end
+
+      File.readlines(".env").each do |line|
+        next if line.strip.empty? || line.start_with?("#")
+        key, value = line.split("=", 2).map(&:strip)
+        ENV[key] = value
       end
     end
 
@@ -32,20 +32,14 @@ module Docker
     end
 
     def create_builder
-      system("docker buildx create --name localbuilder 2>/dev/null || true")
-      system("docker buildx use localbuilder")
+      system("docker", "buildx", "create", "--name", "localbuilder", err: File::NULL)
+      system("docker", "buildx", "use", "localbuilder")
     end
 
     def build
-      system([
-        "docker", "buildx", "build",
-        "--load",
-        "--pull=false",
-        "--build-arg IDE_BASE_IMAGE=#{ENV["IDE_BASE_IMAGE"]}",
-        "--build-arg REPO=#{ENV["REPO"]}",
-        "-t #{ENV["REPO"]}#{ENV["IDE_DOCKER_IMAGE"]}",
-        "."
-      ].join(" "))
+      tag = "#{ENV['REPO']}#{ENV['IDE_DOCKER_IMAGE']}"
+      ok = system("docker", "buildx", "build", "--load", "--pull=false", "-t", tag, ".")
+      exit(1) unless ok
     end
   end
 end
