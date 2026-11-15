@@ -7,11 +7,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  buildx:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
+
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+
+      - name: ShellCheck
+        run: shellcheck dotfiles/host/bin/ide dotfiles/host/bin/*.sh
+
+  buildx:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: QEMU
         uses: docker/setup-qemu-action@v3
@@ -36,7 +51,5 @@ jobs:
           platforms: linux/amd64,linux/arm64/v8
           push: true
           tags: ${{ vars.IDE_DOCKER_IMAGE }}
-          build-args: |
-            IDE_DOCKER_IMAGE=${{ vars.IDE_DOCKER_IMAGE }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
