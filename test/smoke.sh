@@ -32,11 +32,30 @@ check duckdb1  'duckdb1 --version'
 # 2.x needs x86-64-v3; on older x86 CPUs only duckdb1 can run
 check duckdb2  'if [ "$(uname -m)" != x86_64 ] || grep -qw avx2 /proc/cpuinfo; then duckdb2 --version; else echo "skipped: CPU lacks AVX2"; fi'
 check mise     'mise --version'
+# plugin hooks run on mise exec; any "mise ERROR" output there is a regression
+check mise-env 'out=$(mise exec -- true 2>&1); [ -z "$out" ] && echo clean || { echo "$out"; false; }'
 check ruby     'ruby --version'
 check node     'node --version'
 check python   'python --version'
 check pynvim   'python -c "import greenlet, pynvim; print(\"greenlet\", greenlet.__version__)"'
 check go       'go version'
+check rust     'rustc --version && cargo --version'
+check clang    'clang --version'
+check java     'java --version'
+check maven    'mvn --version'
+check gradle   'gradle --version | grep -m1 "^Gradle "'
+check groovy   'groovy --version'
+check kotlin   'kotlinc -version'
+# stderr carries JDK 25's sun.misc.Unsafe deprecation warning
+check scala    'scala --version 2>/dev/null'
+check clojure  'clojure --version'
+check dotnet   'dotnet --version'
+check elixir   'elixir --version | tail -1'
+check erlang   'erl -noshell -eval "io:format(\"~s~n\", [erlang:system_info(otp_release)]), halt()."'
+check zig      'zig version'
+check R        'R --version'
+check ocaml    'ocaml -version'
+check opam     'opam --version'
 exit $fail
 EOF
 )

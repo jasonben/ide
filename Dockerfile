@@ -14,9 +14,13 @@ ENV \
 
 ENV \
   GO_VERSION=1.26.0 \
+  GRADLE_VERSION=9.9.1 \
+  GROOVY_VERSION=6.0.0 \
+  KOTLIN_VERSION=2.4.21 \
   NODE_VERSION=24.5.0 \
   PYTHON_VERSION=3.14.0 \
   RUBY_VERSION=4.0.5 \
+  SCALA_VERSION=3.10.1 \
   HOME=$IDE_HOME \
   TERM=tmux-256color \
   LANG=C.UTF-8 \
@@ -179,6 +183,35 @@ RUN \
     /usr/bin/tic -x tmux-256color.src && \
   chown -R "$IDE_USER:$IDE_USER" $IDE_HOME
 
+# Language toolchains get their own layer so the build deps and apps layer
+# above stays cached when this list changes. apk over mise: prebuilt for musl
+# on both amd64 and arm64. Kotlin, Scala and Groovy aren't in apk, and apk's
+# Gradle 8 can't run on JDK 25; mise installs those below, on top of this JDK.
+RUN \
+  echo "System: Installing language toolchains" && \
+    apk add --no-cache \
+    cargo \
+    clang \
+    clojure \
+    dotnet10-sdk \
+    elixir \
+    erlang \
+    llvm \
+    maven \
+    ocaml \
+    opam \
+    openjdk25-jdk \
+    R \
+    rust \
+    zig
+
+# Point JVM tools at the apk JDK. The mise groovy plugin would otherwise run
+# `asdf which java` on every mise exec / prompt and error, since mise doesn't
+# manage java here.
+ENV \
+  JAVA_HOME=/usr/lib/jvm/default-jvm \
+  ASDF_GROOVY_DISABLE_JAVA_HOME_EXPORT=true
+
 COPY --chmod=755 ./scripts/clone-at /usr/local/bin/clone-at
 COPY --chmod=755 ./scripts/duckdb-select /usr/local/bin/duckdb
 
@@ -260,6 +293,14 @@ RUN \
     && \
   echo "Go: Installing" && \
     mise use --global go@$GO_VERSION && \
+  echo "Kotlin: Installing" && \
+    mise use --global kotlin@$KOTLIN_VERSION && \
+  echo "Scala: Installing" && \
+    mise use --global scala@$SCALA_VERSION && \
+  echo "Groovy: Installing" && \
+    mise use --global groovy@$GROOVY_VERSION && \
+  echo "Gradle: Installing" && \
+    mise use --global gradle@$GRADLE_VERSION && \
   echo "Tmux: Installing catppuccin" && \
     mkdir -p "$IDE_HOME/.tmux/plugins/catppuccin" && \
     clone-at https://github.com/catppuccin/tmux.git "$CATPPUCCIN_TMUX_REF" \
