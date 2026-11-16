@@ -200,7 +200,7 @@ ARG BASE16_SHELL_REF=497c34eacade613cd28fa51e98440d336dcc1f80
 # renovate: datasource=github-tags depName=kdabir/has
 ARG HAS_REF=v1.6.0
 # renovate: datasource=github-tags depName=catppuccin/tmux
-ARG CATPPUCCIN_TMUX_REF=v2.1.3
+ARG CATPPUCCIN_TMUX_REF=v2.3.2
 # DuckDB is bumped by scripts/bump-refs only: the hashes must change with the
 # version, which Renovate can't do. Two CLIs ship: 2.x needs x86-64-v3 (AVX2),
 # so 1.x stays for older x86 CPUs; /usr/local/bin/duckdb picks one at runtime.
