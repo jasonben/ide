@@ -188,7 +188,7 @@ WORKDIR $IDE_HOME
 # Pinned refs: tags where upstream publishes them, commit SHAs otherwise.
 # The "# renovate:" comments drive both Renovate and scripts/bump-refs.
 # renovate: datasource=git-refs depName=https://github.com/ohmyzsh/ohmyzsh branch=master
-ARG OHMYZSH_REF=6010fb6260f359e71d99ba25f05f9215809b3ed2
+ARG OHMYZSH_REF=c0140703a53eb0d22be44f7bac318d0baacc927c
 # renovate: datasource=github-tags depName=zsh-users/zsh-autosuggestions
 ARG ZSH_AUTOSUGGESTIONS_REF=v0.7.1
 # renovate: datasource=github-tags depName=zsh-users/zsh-syntax-highlighting
