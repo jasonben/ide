@@ -196,7 +196,7 @@ ARG ZSH_SYNTAX_HIGHLIGHTING_REF=0.8.0
 # renovate: datasource=git-refs depName=https://github.com/joshskidmore/zsh-fzf-history-search branch=master
 ARG ZSH_FZF_HISTORY_SEARCH_REF=35df458f7d9478fa88c74af762dcd296cdfd485d
 # renovate: datasource=git-refs depName=https://github.com/base16-project/base16-shell branch=main
-ARG BASE16_SHELL_REF=497c34eacade613cd28fa51e98440d336dcc1f80
+ARG BASE16_SHELL_REF=29030b716170387fb91cc8083999e47c281f5160
 # renovate: datasource=github-tags depName=kdabir/has
 ARG HAS_REF=v1.6.0
 # renovate: datasource=github-tags depName=catppuccin/tmux
